@@ -1763,108 +1763,253 @@ const POSSESSIVE_DRILLS = [
 
 // --- Grammar Hub ---
 const GrammarView = ({ progress, setProgress }) => {
-  const [mode, setMode] = useState(null);
+  // route: { type: 'verbs-table' | 'verbs-drill' | 'poss-table' | 'poss-drill' | 'constr-overview' | 'constr-gaps' | 'constr-translate', topic? }
+  const [route, setRoute] = useState(null);
 
-  if (!mode) {
+  if (!route) {
     return (
       <div className="p-5 pb-28">
         <h2 className="font-display text-2xl font-bold text-[#2B2420] mb-1">Grammatik</h2>
-        <p className="text-sm text-[#2B2420]/60 mb-5">Was willst du üben?</p>
-        <div className="space-y-3">
-          <GameCard title="Verben im Präsens" desc="Konjugieren lernen & üben" color="#1F4E5F" emoji="⚡" onClick={() => setMode("verbs")} />
-          <GameCard title="Possessivbegleiter" desc="mi, tu, nuestro, vuestro…" color="#7A4E8B" emoji="🔑" onClick={() => setMode("possessives")} />
-          <GameCard title="Konstruktionen" desc="tener que, querer, gustar…" color="#C85A3E" emoji="🛠️" onClick={() => setMode("constructions")} />
+        <p className="text-sm text-[#2B2420]/60 mb-6">Was willst du üben?</p>
+
+        {/* Verben */}
+        <SectionHeader emoji="⚡" title="Verben im Präsens" subtitle="Konjugieren" color="#1F4E5F" />
+        <div className="space-y-2 mb-5">
+          <ExerciseCard label="Tabellen anschauen" icon="📋" color="#1F4E5F" onClick={() => setRoute({ type: "verbs-table" })} />
+          <ExerciseCard label="Konjugations-Drill" icon="✏️" color="#1F4E5F" onClick={() => setRoute({ type: "verbs-drill" })} />
         </div>
-      </div>
-    );
-  }
 
-  if (mode === "verbs") return <VerbsModule onBack={() => setMode(null)} progress={progress} setProgress={setProgress} />;
-  if (mode === "possessives") return <PossessivesModule onBack={() => setMode(null)} progress={progress} setProgress={setProgress} />;
-  if (mode === "constructions") return <ConstructionsModule onBack={() => setMode(null)} progress={progress} setProgress={setProgress} />;
-};
-
-// --- Verbs Module: browse table OR drill ---
-const VerbsModule = ({ onBack, progress, setProgress }) => {
-  const [sub, setSub] = useState(null); // table | drill
-  const [selectedVerb, setSelectedVerb] = useState(null);
-
-  if (!sub) {
-    return (
-      <div className="p-5 pb-28">
-        <h2 className="font-display text-2xl font-bold text-[#2B2420] mb-1">Verben im Präsens</h2>
-        <p className="text-sm text-[#2B2420]/60 mb-5">Erst anschauen, dann üben</p>
-        <div className="space-y-3">
-          <GameCard title="Tabellen anschauen" desc="Alle Verben & Formen auf einen Blick" color="#1F4E5F" emoji="📋" onClick={() => setSub("table")} />
-          <GameCard title="Konjugations-Drill" desc="Formen selbst bilden" color="#C85A3E" emoji="⚡" onClick={() => setSub("drill")} />
+        {/* Possessivbegleiter */}
+        <SectionHeader emoji="🔑" title="Possessivbegleiter" subtitle="mi, tu, nuestro…" color="#7A4E8B" />
+        <div className="space-y-2 mb-5">
+          <ExerciseCard label="Übersicht" icon="📋" color="#7A4E8B" onClick={() => setRoute({ type: "poss-table" })} />
+          <ExerciseCard label="Übung" icon="🎯" color="#7A4E8B" onClick={() => setRoute({ type: "poss-drill" })} />
         </div>
-      </div>
-    );
-  }
 
-  if (sub === "table") {
-    if (!selectedVerb) {
-      return (
-        <div className="p-5 pb-28">
-          <h3 className="font-display text-xl font-bold text-[#2B2420] mb-4">Wähl ein Verb</h3>
-          <div className="space-y-2">
-            {Object.entries(VERBS).map(([key, v]) => (
-              <button key={key} onClick={() => setSelectedVerb(key)} className="w-full bg-white rounded-2xl p-4 shadow-sm border border-[#C85A3E]/10 flex items-center justify-between active:scale-[0.98] transition">
-                <div className="text-left">
-                  <div className="font-display font-bold text-[#2B2420]">{v.inf}</div>
-                  <div className="text-xs text-[#2B2420]/60">{v.de} · {v.type}</div>
-                </div>
-                <ArrowRight size={16} className="text-[#C85A3E]" />
-              </button>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    const v = VERBS[selectedVerb];
-    const forms = conjugate(v);
-    const isIrregular = v.type === "unregelmäßig";
-    return (
-      <div className="p-5 pb-28">
-        <button onClick={() => setSelectedVerb(null)} className="text-sm text-[#C85A3E] font-semibold mb-4 flex items-center gap-1">
-          <ChevronLeft size={16} /> Andere Verben
-        </button>
-        <div className="bg-white rounded-3xl p-6 shadow-sm">
-          <div className="text-xs tracking-widest uppercase text-[#C85A3E] font-semibold mb-1">{v.type}</div>
-          <div className="flex items-baseline gap-3 mb-1">
-            <h3 className="font-display text-3xl font-bold text-[#2B2420]">{v.inf}</h3>
-            <button onClick={() => speak(v.inf)} className="text-[#C85A3E]"><Volume2 size={18} /></button>
-          </div>
-          <div className="text-[#2B2420]/60 mb-5 italic">{v.de}</div>
-          <div className="space-y-2">
-            {PRONOUNS.map((p, i) => (
-              <div key={p.key} className="flex items-center justify-between py-2.5 border-b border-[#2B2420]/5 last:border-0">
+        {/* Konstruktionen */}
+        <SectionHeader emoji="🛠️" title="Konstruktionen" subtitle="tener que, querer, gustar…" color="#C85A3E" />
+        <div className="space-y-2">
+          {Object.values(CONSTRUCTIONS).map((c) => (
+            <div key={c.key} className="bg-white rounded-2xl shadow-sm border border-[#C85A3E]/10 overflow-hidden">
+              <div className="px-4 py-2.5 flex items-center gap-3" style={{ background: `${c.color}10` }}>
+                <span className="text-xl">{c.emoji}</span>
                 <div className="flex-1">
-                  <div className="text-xs text-[#2B2420]/50">{p.key} <span className="text-[#2B2420]/40">({p.de})</span></div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-display text-lg font-semibold text-[#1F4E5F]">
-                    {!isIrregular && <span className="text-[#2B2420]/40">{v.stem}</span>}
-                    <span className={isIrregular ? "" : "text-[#C85A3E]"}>{isIrregular ? forms[i] : v.endings[i]}</span>
-                  </span>
-                  <button onClick={() => speak(forms[i])} className="text-[#C85A3E]/70"><Volume2 size={14} /></button>
+                  <div className="font-display font-bold text-sm text-[#2B2420]">{c.title}</div>
+                  <div className="text-[11px] text-[#2B2420]/60">„{c.short}"</div>
                 </div>
               </div>
-            ))}
-          </div>
-          {!isIrregular && (
-            <div className="mt-5 p-3 bg-[#FAF3E7] rounded-xl text-xs text-[#2B2420]/70 leading-relaxed">
-              💡 Stamm <span className="font-bold text-[#2B2420]">{v.stem}</span> bleibt gleich. Nur die Endung ändert sich je nach Person.
+              <div className="grid grid-cols-3 gap-px bg-[#2B2420]/5">
+                <button onClick={() => setRoute({ type: "constr-overview", topic: c.key })} className="bg-white py-3 text-xs font-semibold text-[#2B2420] active:bg-[#FAF3E7] transition flex flex-col items-center gap-0.5">
+                  <span className="text-base">📖</span>
+                  Erklärung
+                </button>
+                <button onClick={() => setRoute({ type: "constr-gaps", topic: c.key })} className="bg-white py-3 text-xs font-semibold text-[#2B2420] active:bg-[#FAF3E7] transition flex flex-col items-center gap-0.5">
+                  <span className="text-base">✏️</span>
+                  Lücken
+                </button>
+                <button onClick={() => setRoute({ type: "constr-translate", topic: c.key })} className="bg-white py-3 text-xs font-semibold text-[#2B2420] active:bg-[#FAF3E7] transition flex flex-col items-center gap-0.5">
+                  <span className="text-base">🇩🇪→🇪🇸</span>
+                  Sätze
+                </button>
+              </div>
             </div>
-          )}
+          ))}
         </div>
       </div>
     );
   }
 
-  return <VerbDrill onBack={() => setSub(null)} progress={progress} setProgress={setProgress} />;
+  const back = () => setRoute(null);
+
+  if (route.type === "verbs-table") return <VerbsTableView onBack={back} />;
+  if (route.type === "verbs-drill") return <VerbDrill onBack={back} progress={progress} setProgress={setProgress} />;
+  if (route.type === "poss-table") return <PossessivesTableView onBack={back} />;
+  if (route.type === "poss-drill") return <PossessiveDrill onBack={back} progress={progress} setProgress={setProgress} />;
+  if (route.type === "constr-overview") return <ConstructionOverview construction={CONSTRUCTIONS[route.topic]} onBack={back} onGoGaps={() => setRoute({ type: "constr-gaps", topic: route.topic })} onGoTranslate={() => setRoute({ type: "constr-translate", topic: route.topic })} />;
+  if (route.type === "constr-gaps") return <GapDrill construction={CONSTRUCTIONS[route.topic]} onBack={back} progress={progress} setProgress={setProgress} />;
+  if (route.type === "constr-translate") return <TranslationDrill construction={CONSTRUCTIONS[route.topic]} onBack={back} progress={progress} setProgress={setProgress} />;
 };
 
+const SectionHeader = ({ emoji, title, subtitle, color }) => (
+  <div className="flex items-center gap-2 mb-2 mt-1">
+    <span className="text-xl">{emoji}</span>
+    <div className="flex-1">
+      <div className="font-display font-bold text-[#2B2420]">{title}</div>
+      <div className="text-[11px] text-[#2B2420]/50">{subtitle}</div>
+    </div>
+    <div className="h-px flex-1" style={{ background: `${color}40` }} />
+  </div>
+);
+
+const ExerciseCard = ({ label, icon, color, onClick }) => (
+  <button
+    onClick={onClick}
+    className="w-full bg-white rounded-2xl py-3 px-4 shadow-sm border flex items-center gap-3 active:scale-[0.98] transition text-left"
+    style={{ borderColor: `${color}25` }}
+  >
+    <span className="text-xl">{icon}</span>
+    <span className="flex-1 font-semibold text-sm text-[#2B2420]">{label}</span>
+    <ArrowRight size={16} style={{ color }} />
+  </button>
+);
+
+// Standalone view for verb tables (extracted from VerbsModule)
+const VerbsTableView = ({ onBack }) => {
+  const [selectedVerb, setSelectedVerb] = useState(null);
+
+  if (!selectedVerb) {
+    return (
+      <div className="p-5 pb-28">
+        <button onClick={onBack} className="text-sm text-[#C85A3E] font-semibold mb-4 flex items-center gap-1">
+          <ChevronLeft size={16} /> Zurück
+        </button>
+        <h3 className="font-display text-xl font-bold text-[#2B2420] mb-4">Wähl ein Verb</h3>
+        <div className="space-y-2">
+          {Object.entries(VERBS).map(([key, v]) => (
+            <button key={key} onClick={() => setSelectedVerb(key)} className="w-full bg-white rounded-2xl p-4 shadow-sm border border-[#C85A3E]/10 flex items-center justify-between active:scale-[0.98] transition">
+              <div className="text-left">
+                <div className="font-display font-bold text-[#2B2420]">{v.inf}</div>
+                <div className="text-xs text-[#2B2420]/60">{v.de} · {v.type}</div>
+              </div>
+              <ArrowRight size={16} className="text-[#C85A3E]" />
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  const v = VERBS[selectedVerb];
+  const forms = conjugate(v);
+  const isIrregular = v.type === "unregelmäßig";
+  return (
+    <div className="p-5 pb-28">
+      <button onClick={() => setSelectedVerb(null)} className="text-sm text-[#C85A3E] font-semibold mb-4 flex items-center gap-1">
+        <ChevronLeft size={16} /> Andere Verben
+      </button>
+      <div className="bg-white rounded-3xl p-6 shadow-sm">
+        <div className="text-xs tracking-widest uppercase text-[#C85A3E] font-semibold mb-1">{v.type}</div>
+        <div className="flex items-baseline gap-3 mb-1">
+          <h3 className="font-display text-3xl font-bold text-[#2B2420]">{v.inf}</h3>
+          <button onClick={() => speak(v.inf)} className="text-[#C85A3E]"><Volume2 size={18} /></button>
+        </div>
+        <div className="text-[#2B2420]/60 mb-5 italic">{v.de}</div>
+        <div className="space-y-2">
+          {PRONOUNS.map((p, i) => (
+            <div key={p.key} className="flex items-center justify-between py-2.5 border-b border-[#2B2420]/5 last:border-0">
+              <div className="flex-1">
+                <div className="text-xs text-[#2B2420]/50">{p.key} <span className="text-[#2B2420]/40">({p.de})</span></div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="font-display text-lg font-semibold text-[#1F4E5F]">
+                  {!isIrregular && <span className="text-[#2B2420]/40">{v.stem}</span>}
+                  <span className={isIrregular ? "" : "text-[#C85A3E]"}>{isIrregular ? forms[i] : v.endings[i]}</span>
+                </span>
+                <button onClick={() => speak(forms[i])} className="text-[#C85A3E]/70"><Volume2 size={14} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+        {!isIrregular && (
+          <div className="mt-5 p-3 bg-[#FAF3E7] rounded-xl text-xs text-[#2B2420]/70 leading-relaxed">
+            💡 Stamm <span className="font-bold text-[#2B2420]">{v.stem}</span> bleibt gleich. Nur die Endung ändert sich je nach Person.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Standalone view for possessives table
+const PossessivesTableView = ({ onBack }) => (
+  <div className="p-5 pb-28">
+    <button onClick={onBack} className="text-sm text-[#C85A3E] font-semibold mb-4 flex items-center gap-1">
+      <ChevronLeft size={16} /> Zurück
+    </button>
+    <h3 className="font-display text-xl font-bold text-[#2B2420] mb-4">Possessivbegleiter</h3>
+    <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
+      <div className="text-xs tracking-widest uppercase text-[#C85A3E] font-semibold mb-3">💡 Wichtig</div>
+      <p className="text-sm text-[#2B2420]/80 leading-relaxed">
+        <span className="font-bold">mi, tu, su</span> ändern sich nur im <span className="font-bold">Numerus</span> (Einzahl/Mehrzahl).{" "}
+        <span className="font-bold">nuestro</span> und <span className="font-bold">vuestro</span> ändern sich auch im <span className="font-bold">Genus</span> (männlich/weiblich)!
+      </p>
+    </div>
+    <div className="space-y-3">
+      {POSSESSIVES.map((p) => (
+        <div key={p.person} className="bg-white rounded-2xl p-5 shadow-sm">
+          <div className="flex items-baseline justify-between mb-3">
+            <div>
+              <div className="font-display font-bold text-[#2B2420]">{p.person}</div>
+              <div className="text-xs text-[#2B2420]/60 italic">{p.de}</div>
+            </div>
+          </div>
+          {p.sg ? (
+            <div className="grid grid-cols-2 gap-2">
+              <FormBox label="Einzahl" value={p.sg} />
+              <FormBox label="Mehrzahl" value={p.pl} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <FormBox label="Sg. männl." value={p.sg_m} />
+              <FormBox label="Sg. weibl." value={p.sg_f} />
+              <FormBox label="Pl. männl." value={p.pl_m} />
+              <FormBox label="Pl. weibl." value={p.pl_f} />
+            </div>
+          )}
+          <div className="mt-3 text-xs text-[#2B2420]/60 italic">{p.note}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// Standalone Construction overview (extracted)
+const ConstructionOverview = ({ construction, onBack, onGoGaps, onGoTranslate }) => (
+  <div className="p-5 pb-28">
+    <button onClick={onBack} className="text-sm text-[#C85A3E] font-semibold mb-4 flex items-center gap-1">
+      <ChevronLeft size={16} /> Zurück
+    </button>
+    <div className="bg-white rounded-3xl p-6 shadow-sm mb-4">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="text-4xl">{construction.emoji}</div>
+        <div>
+          <h3 className="font-display text-2xl font-bold text-[#2B2420]">{construction.title}</h3>
+          <div className="text-sm text-[#2B2420]/60">„{construction.short}"</div>
+        </div>
+      </div>
+      <div className="bg-[#FAF3E7] rounded-xl p-4 text-sm text-[#2B2420]/80 leading-relaxed mt-4">
+        💡 {construction.explanation}
+      </div>
+    </div>
+    <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
+      <div className="text-xs tracking-widest uppercase text-[#2B2420]/50 font-semibold mb-3">Beispiele</div>
+      <div className="space-y-2">
+        {construction.forms.map((f, i) => (
+          <div key={i} className="py-2.5 border-b border-[#2B2420]/5 last:border-0">
+            <div className="flex items-baseline justify-between mb-0.5">
+              <span className="text-xs text-[#2B2420]/50">{f.person}</span>
+              <span className="font-display font-bold text-sm" style={{ color: construction.color }}>{f.form}</span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="font-display text-[#2B2420] text-sm">{f.example}</div>
+              <button onClick={() => speak(f.example.replace(/[¡¿?.,]/g, ""))} className="text-[#C85A3E]/70 flex-shrink-0"><Volume2 size={14} /></button>
+            </div>
+            <div className="text-xs text-[#2B2420]/60 italic">{f.de}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+    <div className="grid grid-cols-2 gap-2">
+      <button onClick={onGoGaps} className="py-3 rounded-2xl bg-[#1F4E5F] font-semibold text-sm active:scale-95 transition" style={{ color: "#FFFFFF" }}>
+        <span style={{ color: "#FFFFFF" }}>✏️ Lücken üben</span>
+      </button>
+      <button onClick={onGoTranslate} style={{ background: construction.color, color: "#FFFFFF" }} className="py-3 rounded-2xl font-semibold text-sm active:scale-95 transition">
+        <span style={{ color: "#FFFFFF" }}>🇩🇪→🇪🇸 Sätze</span>
+      </button>
+    </div>
+  </div>
+);
+
+// --- Verbs Module: browse table OR drill ---
 // --- Verb Drill ---
 const VerbDrill = ({ onBack, progress, setProgress }) => {
   const [questions, setQuestions] = useState([]);
@@ -1968,66 +2113,6 @@ const VerbDrill = ({ onBack, progress, setProgress }) => {
 };
 
 // --- Possessives Module ---
-const PossessivesModule = ({ onBack, progress, setProgress }) => {
-  const [sub, setSub] = useState(null);
-
-  if (!sub) {
-    return (
-      <div className="p-5 pb-28">
-        <h2 className="font-display text-2xl font-bold text-[#2B2420] mb-1">Possessivbegleiter</h2>
-        <p className="text-sm text-[#2B2420]/60 mb-5">mein, dein, unser …</p>
-        <div className="space-y-3">
-          <GameCard title="Übersicht" desc="Tabelle mit allen Formen" color="#7A4E8B" emoji="📋" onClick={() => setSub("table")} />
-          <GameCard title="Übung" desc="Richtige Form bilden" color="#C85A3E" emoji="🎯" onClick={() => setSub("drill")} />
-        </div>
-      </div>
-    );
-  }
-
-  if (sub === "table") {
-    return (
-      <div className="p-5 pb-28">
-        <h3 className="font-display text-xl font-bold text-[#2B2420] mb-4">Possessivbegleiter</h3>
-        <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
-          <div className="text-xs tracking-widest uppercase text-[#C85A3E] font-semibold mb-3">💡 Wichtig</div>
-          <p className="text-sm text-[#2B2420]/80 leading-relaxed">
-            <span className="font-bold">mi, tu, su</span> ändern sich nur im <span className="font-bold">Numerus</span> (Einzahl/Mehrzahl).{" "}
-            <span className="font-bold">nuestro</span> und <span className="font-bold">vuestro</span> ändern sich auch im <span className="font-bold">Genus</span> (männlich/weiblich)!
-          </p>
-        </div>
-        <div className="space-y-3">
-          {POSSESSIVES.map((p) => (
-            <div key={p.person} className="bg-white rounded-2xl p-5 shadow-sm">
-              <div className="flex items-baseline justify-between mb-3">
-                <div>
-                  <div className="font-display font-bold text-[#2B2420]">{p.person}</div>
-                  <div className="text-xs text-[#2B2420]/60 italic">{p.de}</div>
-                </div>
-              </div>
-              {p.sg ? (
-                <div className="grid grid-cols-2 gap-2">
-                  <FormBox label="Einzahl" value={p.sg} />
-                  <FormBox label="Mehrzahl" value={p.pl} />
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <FormBox label="Sg. männl." value={p.sg_m} />
-                  <FormBox label="Sg. weibl." value={p.sg_f} />
-                  <FormBox label="Pl. männl." value={p.pl_m} />
-                  <FormBox label="Pl. weibl." value={p.pl_f} />
-                </div>
-              )}
-              <div className="mt-3 text-xs text-[#2B2420]/60 italic">{p.note}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  return <PossessiveDrill onBack={() => setSub(null)} progress={progress} setProgress={setProgress} />;
-};
-
 const FormBox = ({ label, value }) => (
   <div className="bg-[#FAF3E7] rounded-xl p-3 text-center">
     <div className="text-[10px] text-[#2B2420]/50 tracking-wider uppercase mb-1">{label}</div>
@@ -2339,114 +2424,6 @@ const TRANSLATION_DRILLS = {
     { de: "Man muss viel arbeiten.", accept: ["hay que trabajar mucho"] },
     { de: "Man muss früh aufstehen.", accept: ["hay que levantarse temprano"] },
   ],
-};
-
-const ConstructionsModule = ({ onBack, progress, setProgress }) => {
-  const [step, setStep] = useState("topics"); // topics | overview | gaps | translate
-  const [topic, setTopic] = useState(null);
-
-  // 1. Themenwahl
-  if (step === "topics") {
-    return (
-      <div className="p-5 pb-28">
-        <h2 className="font-display text-2xl font-bold text-[#2B2420] mb-1">Konstruktionen</h2>
-        <p className="text-sm text-[#2B2420]/60 mb-5">Welche Konstruktion willst du üben?</p>
-        <div className="space-y-3">
-          {Object.values(CONSTRUCTIONS).map((c) => (
-            <button
-              key={c.key}
-              onClick={() => { setTopic(c.key); setStep("modePick"); }}
-              style={{ borderColor: `${c.color}40` }}
-              className="w-full bg-white rounded-2xl p-4 shadow-sm border-2 flex items-center gap-4 active:scale-[0.98] transition text-left"
-            >
-              <div className="text-3xl">{c.emoji}</div>
-              <div className="flex-1">
-                <div className="font-display font-bold text-[#2B2420]">{c.title}</div>
-                <div className="text-xs text-[#2B2420]/60 mt-0.5">„{c.short}"</div>
-              </div>
-              <ArrowRight size={18} style={{ color: c.color }} />
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const construction = CONSTRUCTIONS[topic];
-
-  // 2. Übungstyp wählen
-  if (step === "modePick") {
-    return (
-      <div className="p-5 pb-28">
-        <button onClick={() => setStep("topics")} className="text-sm text-[#C85A3E] font-semibold mb-4 flex items-center gap-1">
-          <ChevronLeft size={16} /> Andere Konstruktion
-        </button>
-        <h2 className="font-display text-2xl font-bold text-[#2B2420] mb-1">{construction.emoji} {construction.title}</h2>
-        <p className="text-sm text-[#2B2420]/60 mb-5">Was willst du machen?</p>
-        <div className="space-y-3">
-          <GameCard title="📖 Erst erklären lassen" desc="Tabelle und Beispiele anschauen" color={construction.color} emoji="" onClick={() => setStep("overview")} />
-          <GameCard title="✏️ Lückentexte" desc="Yo ___ que estudiar → tippen" color="#1F4E5F" emoji="" onClick={() => setStep("gaps")} />
-          <GameCard title="🇩🇪→🇪🇸 Sätze übersetzen" desc="Ich muss lernen → Tengo que estudiar" color="#C85A3E" emoji="" onClick={() => setStep("translate")} />
-        </div>
-      </div>
-    );
-  }
-
-  // 3. Übersicht
-  if (step === "overview") {
-    return (
-      <div className="p-5 pb-28">
-        <button onClick={() => setStep("modePick")} className="text-sm text-[#C85A3E] font-semibold mb-4 flex items-center gap-1">
-          <ChevronLeft size={16} /> Zurück
-        </button>
-        <div className="bg-white rounded-3xl p-6 shadow-sm mb-4">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="text-4xl">{construction.emoji}</div>
-            <div>
-              <h3 className="font-display text-2xl font-bold text-[#2B2420]">{construction.title}</h3>
-              <div className="text-sm text-[#2B2420]/60">„{construction.short}"</div>
-            </div>
-          </div>
-          <div className="bg-[#FAF3E7] rounded-xl p-4 text-sm text-[#2B2420]/80 leading-relaxed mt-4">
-            💡 {construction.explanation}
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
-          <div className="text-xs tracking-widest uppercase text-[#2B2420]/50 font-semibold mb-3">Beispiele</div>
-          <div className="space-y-2">
-            {construction.forms.map((f, i) => (
-              <div key={i} className="py-2.5 border-b border-[#2B2420]/5 last:border-0">
-                <div className="flex items-baseline justify-between mb-0.5">
-                  <span className="text-xs text-[#2B2420]/50">{f.person}</span>
-                  <span className="font-display font-bold text-sm" style={{ color: construction.color }}>{f.form}</span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <div className="font-display text-[#2B2420] text-sm">{f.example}</div>
-                  <button onClick={() => speak(f.example.replace(/[¡¿?.,]/g, ""))} className="text-[#C85A3E]/70 flex-shrink-0"><Volume2 size={14} /></button>
-                </div>
-                <div className="text-xs text-[#2B2420]/60 italic">{f.de}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button onClick={() => setStep("gaps")} className="py-3 rounded-2xl bg-[#1F4E5F] text-white font-semibold text-sm active:scale-95 transition" style={{ color: "#FFFFFF" }}>
-            <span style={{ color: "#FFFFFF" }}>✏️ Lücken üben</span>
-          </button>
-          <button onClick={() => setStep("translate")} style={{ background: construction.color, color: "#FFFFFF" }} className="py-3 rounded-2xl font-semibold text-sm active:scale-95 transition">
-            <span style={{ color: "#FFFFFF" }}>🇩🇪→🇪🇸 Sätze</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "gaps") {
-    return <GapDrill construction={construction} onBack={() => setStep("modePick")} progress={progress} setProgress={setProgress} />;
-  }
-  if (step === "translate") {
-    return <TranslationDrill construction={construction} onBack={() => setStep("modePick")} progress={progress} setProgress={setProgress} />;
-  }
 };
 
 // === Lückentext-Drill ===
