@@ -264,128 +264,414 @@ const ActionCard = ({ icon, title, subtitle, color, onClick }) => (
   </button>
 );
 
-// --- Chat View (offline, strukturierter Dialog) ---
-const SOFIA_QUESTIONS = [
-  { es: "¡Hola! ¿Cómo te llamas?", de: "Hallo! Wie heißt du?", hint: "Me llamo ___" },
-  { es: "¿Cómo estás hoy?", de: "Wie geht es dir heute?", hint: "Estoy bien / cansada / feliz" },
-  { es: "¿Cuántos años tienes?", de: "Wie alt bist du?", hint: "Tengo ___ años" },
-  { es: "¿De dónde eres?", de: "Woher kommst du?", hint: "Soy de Alemania" },
-  { es: "¿Dónde vives?", de: "Wo wohnst du?", hint: "Vivo en ___" },
-  { es: "¿Tienes hermanos?", de: "Hast du Geschwister?", hint: "Sí, tengo un hermano / No, no tengo" },
-  { es: "¿Cómo se llama tu madre?", de: "Wie heißt deine Mutter?", hint: "Mi madre se llama ___" },
-  { es: "¿Tienes una mascota?", de: "Hast du ein Haustier?", hint: "Sí, tengo un perro / No, no tengo" },
-  { es: "¿Cuál es tu color favorito?", de: "Was ist deine Lieblingsfarbe?", hint: "Mi color favorito es ___" },
-  { es: "¿Qué comes para desayunar?", de: "Was isst du zum Frühstück?", hint: "Como pan con queso" },
-  { es: "¿Qué bebes normalmente?", de: "Was trinkst du normalerweise?", hint: "Bebo agua / zumo / leche" },
-  { es: "¿Cuál es tu comida favorita?", de: "Was ist dein Lieblingsessen?", hint: "Mi comida favorita es ___" },
-  { es: "¿Qué te gusta hacer?", de: "Was machst du gerne?", hint: "Me gusta bailar / leer / nadar" },
-  { es: "¿Juegas al fútbol?", de: "Spielst du Fußball?", hint: "Sí, juego al fútbol / No, no juego" },
-  { es: "¿Qué música escuchas?", de: "Welche Musik hörst du?", hint: "Escucho pop / rock / reggaetón" },
-  { es: "¿Cuál es tu día favorito de la semana?", de: "Was ist dein Lieblingstag?", hint: "Mi día favorito es sábado" },
-  { es: "¿Te gusta la escuela?", de: "Magst du die Schule?", hint: "Sí, me gusta / No, no me gusta" },
-  { es: "¿Cuál es tu asignatura favorita?", de: "Was ist dein Lieblingsfach?", hint: "Mi asignatura favorita es ___" },
-  { es: "¿Qué tiempo hace hoy?", de: "Wie ist das Wetter heute?", hint: "Hace sol / frío / calor / llueve" },
-  { es: "¿Cuál es tu estación favorita?", de: "Was ist deine Lieblingsjahreszeit?", hint: "Mi estación favorita es verano" },
-  { es: "¿Cuántas personas hay en tu familia?", de: "Wie viele seid ihr in der Familie?", hint: "Somos ___ personas" },
-  { es: "¿Qué ropa llevas hoy?", de: "Was trägst du heute?", hint: "Llevo una camiseta y pantalones" },
-  { es: "¿Tienes primos?", de: "Hast du Cousins/Cousinen?", hint: "Sí, tengo ___ primos" },
-  { es: "¿A qué hora te levantas?", de: "Um wie viel Uhr stehst du auf?", hint: "Me levanto a las siete" },
-  { es: "¿Qué haces los fines de semana?", de: "Was machst du am Wochenende?", hint: "Los fines de semana leo / veo películas" },
-];
+// --- Chat View: Rollenspiele ---
+// Jede Szene: Sofía spielt eine Rolle, Spielerin antwortet via Multiple-Choice.
+// Steps: { sofia: spanischer Satz, de: dt. Übersetzung, options: [{es, de, correct}] }
+const ROLEPLAYS = {
+  cafe: {
+    title: "Im Café",
+    emoji: "☕",
+    color: "#1F4E5F",
+    description: "Sofía ist Kellnerin. Du bestellst ein Getränk und etwas zu essen.",
+    setting: "Du gehst in ein kleines Café in Sevilla. Die Kellnerin kommt zu dir.",
+    steps: [
+      {
+        sofia: "¡Hola! Buenos días. ¿Qué quieres tomar?",
+        de: "Hallo! Guten Morgen. Was möchtest du trinken?",
+        options: [
+          { es: "Quiero un zumo de naranja, por favor.", de: "Einen Orangensaft, bitte.", correct: true },
+          { es: "Me llamo María.", de: "Ich heiße María.", correct: false, why: "Sie hat dich gefragt, was du trinken willst, nicht deinen Namen!" },
+          { es: "Tengo doce años.", de: "Ich bin zwölf.", correct: false, why: "Das ist dein Alter – sie fragt nach dem Getränk." },
+        ],
+      },
+      {
+        sofia: "Perfecto. ¿Y para comer? Tenemos tostadas, cruasanes y tortilla.",
+        de: "Perfekt. Und zu essen? Wir haben Toast, Croissants und Tortilla.",
+        options: [
+          { es: "Un cruasán, por favor.", de: "Ein Croissant, bitte.", correct: true },
+          { es: "No tengo hambre.", de: "Ich habe keinen Hunger.", correct: true, alt: true },
+          { es: "Hace mucho calor.", de: "Es ist sehr heiß.", correct: false, why: "Sie fragt nach dem Essen, nicht nach dem Wetter." },
+        ],
+      },
+      {
+        sofia: "Muy bien. ¿Algo más?",
+        de: "Sehr gut. Sonst noch etwas?",
+        options: [
+          { es: "No, gracias. Eso es todo.", de: "Nein, danke. Das ist alles.", correct: true },
+          { es: "Sí, también un agua, por favor.", de: "Ja, auch ein Wasser, bitte.", correct: true, alt: true },
+          { es: "¿Dónde está el baño?", de: "Wo ist die Toilette?", correct: false, why: "Antworte erst auf ihre Frage – das kannst du nachher fragen!" },
+        ],
+      },
+      {
+        sofia: "¡Aquí tienes! Son cuatro euros, por favor.",
+        de: "Hier bitte! Das macht vier Euro.",
+        options: [
+          { es: "Aquí tiene. Muchas gracias.", de: "Hier bitte. Vielen Dank.", correct: true },
+          { es: "Me gusta mucho.", de: "Es gefällt mir sehr.", correct: false, why: "Sie will Geld, nicht eine Meinung!" },
+          { es: "Hasta luego.", de: "Bis später.", correct: false, why: "Erst zahlen, dann verabschieden." },
+        ],
+      },
+      {
+        sofia: "¡Gracias a ti! Que tengas un buen día. ¡Hasta luego!",
+        de: "Danke dir! Schönen Tag noch. Tschüss!",
+        options: [
+          { es: "¡Hasta luego! Adiós.", de: "Tschüss! Auf Wiedersehen.", correct: true },
+          { es: "¡Igualmente! Adiós.", de: "Dir auch! Tschüss.", correct: true, alt: true },
+          { es: "Tengo un perro.", de: "Ich habe einen Hund.", correct: false, why: "Verabschiede dich passend!" },
+        ],
+      },
+    ],
+  },
+  restaurant: {
+    title: "Im Restaurant",
+    emoji: "🍽️",
+    color: "#C85A3E",
+    description: "Sofía ist Kellnerin. Du bestellst ein Mittagessen.",
+    setting: "Es ist Mittag. Du bist mit deiner Familie in einem Restaurant in Madrid.",
+    steps: [
+      {
+        sofia: "¡Buenas tardes! Bienvenida. ¿Para cuántas personas?",
+        de: "Guten Tag! Willkommen. Für wie viele Personen?",
+        options: [
+          { es: "Somos cuatro personas.", de: "Wir sind vier Personen.", correct: true },
+          { es: "Tengo hambre.", de: "Ich habe Hunger.", correct: false, why: "Sie fragt, wie viele ihr seid – nicht ob du Hunger hast." },
+          { es: "Vivo en Berlín.", de: "Ich wohne in Berlin.", correct: false, why: "Das ist nicht die Frage." },
+        ],
+      },
+      {
+        sofia: "Perfecto. Aquí tienen la carta. ¿Quieren algo de beber primero?",
+        de: "Perfekt. Hier ist die Karte. Möchtet ihr zuerst etwas zu trinken?",
+        options: [
+          { es: "Sí, una botella de agua, por favor.", de: "Ja, eine Flasche Wasser, bitte.", correct: true },
+          { es: "Quiero una limonada.", de: "Ich möchte eine Limonade.", correct: true, alt: true },
+          { es: "¿Cómo te llamas?", de: "Wie heißt du?", correct: false, why: "Eine Kellnerin frägt man nicht nach ihrem Namen 😄" },
+        ],
+      },
+      {
+        sofia: "Muy bien. ¿Y de comer? El plato del día es paella.",
+        de: "Sehr gut. Und zum Essen? Das Tagesgericht ist Paella.",
+        options: [
+          { es: "Quiero la paella, por favor.", de: "Ich nehme die Paella, bitte.", correct: true },
+          { es: "Para mí, una ensalada y pollo.", de: "Für mich, einen Salat und Hähnchen.", correct: true, alt: true },
+          { es: "Mi color favorito es azul.", de: "Meine Lieblingsfarbe ist blau.", correct: false, why: "Bestelle Essen, keine Farben! 🎨" },
+        ],
+      },
+      {
+        sofia: "Excelente elección. ¿Algún postre? Tenemos helado y flan.",
+        de: "Ausgezeichnete Wahl. Ein Dessert? Wir haben Eis und Flan.",
+        options: [
+          { es: "Un helado de chocolate, por favor.", de: "Ein Schoko-Eis, bitte.", correct: true },
+          { es: "No, gracias. Estoy llena.", de: "Nein, danke. Ich bin satt.", correct: true, alt: true },
+          { es: "Tengo trece años.", de: "Ich bin dreizehn.", correct: false, why: "Sie fragt nach Dessert – sag ja oder nein!" },
+        ],
+      },
+      {
+        sofia: "Aquí está la cuenta. Son veinticinco euros.",
+        de: "Hier ist die Rechnung. Das macht 25 Euro.",
+        options: [
+          { es: "Gracias. ¿Puedo pagar con tarjeta?", de: "Danke. Kann ich mit Karte zahlen?", correct: true },
+          { es: "Aquí tiene, gracias.", de: "Hier bitte, danke.", correct: true, alt: true },
+          { es: "¡Adiós!", de: "Tschüss!", correct: false, why: "Erst zahlen, dann gehen." },
+        ],
+      },
+    ],
+  },
+  hotel: {
+    title: "Im Hotel",
+    emoji: "🏨",
+    color: "#7A4E8B",
+    description: "Sofía ist Rezeptionistin. Du checkst in einem Hotel ein.",
+    setting: "Du kommst nach einer langen Reise im Hotel an. Die Rezeptionistin grüßt dich.",
+    steps: [
+      {
+        sofia: "¡Buenas tardes! ¿Tiene una reserva?",
+        de: "Guten Tag! Haben Sie eine Reservierung?",
+        options: [
+          { es: "Sí, a nombre de Schmidt.", de: "Ja, auf den Namen Schmidt.", correct: true },
+          { es: "No, no tengo perro.", de: "Nein, ich habe keinen Hund.", correct: false, why: "'Reserva' heißt Reservierung, nicht Hund!" },
+          { es: "Vivo en Hamburgo.", de: "Ich wohne in Hamburg.", correct: false, why: "Wo du wohnst, will sie nicht wissen." },
+        ],
+      },
+      {
+        sofia: "Perfecto. Una habitación doble para tres noches, ¿verdad?",
+        de: "Perfekt. Ein Doppelzimmer für drei Nächte, richtig?",
+        options: [
+          { es: "Sí, exacto.", de: "Ja, genau.", correct: true },
+          { es: "Sí, es correcto.", de: "Ja, das ist richtig.", correct: true, alt: true },
+          { es: "No me gusta el café.", de: "Ich mag keinen Kaffee.", correct: false, why: "Antwort auf die Reservierungsfrage, nicht über Kaffee!" },
+        ],
+      },
+      {
+        sofia: "¿Me puede dar su pasaporte, por favor?",
+        de: "Können Sie mir bitte Ihren Pass geben?",
+        options: [
+          { es: "Sí, aquí tiene.", de: "Ja, hier bitte.", correct: true },
+          { es: "Un momento, por favor.", de: "Einen Moment, bitte.", correct: true, alt: true },
+          { es: "Tengo hambre.", de: "Ich habe Hunger.", correct: false, why: "Sie will den Pass, nicht über Hunger reden." },
+        ],
+      },
+      {
+        sofia: "Su habitación es la 204, en la segunda planta. ¿A qué hora quiere desayunar?",
+        de: "Ihr Zimmer ist die 204, im 2. Stock. Wann möchten Sie frühstücken?",
+        options: [
+          { es: "A las ocho, por favor.", de: "Um acht, bitte.", correct: true },
+          { es: "A las nueve y media.", de: "Um halb zehn.", correct: true, alt: true },
+          { es: "Soy alemana.", de: "Ich bin Deutsche.", correct: false, why: "Sie fragt nach der Uhrzeit für Frühstück!" },
+        ],
+      },
+      {
+        sofia: "Muy bien. Aquí tiene la llave. ¡Que tenga una buena estancia!",
+        de: "Sehr gut. Hier ist Ihr Schlüssel. Schönen Aufenthalt!",
+        options: [
+          { es: "Muchas gracias. ¡Hasta luego!", de: "Vielen Dank. Bis später!", correct: true },
+          { es: "Gracias, igualmente.", de: "Danke, dir auch.", correct: true, alt: true },
+          { es: "Quiero pizza.", de: "Ich will Pizza.", correct: false, why: "Sei höflich, du gehst aufs Zimmer!" },
+        ],
+      },
+    ],
+  },
+  mercado: {
+    title: "Auf dem Markt",
+    emoji: "🍅",
+    color: "#6B8F47",
+    description: "Sofía verkauft Obst und Gemüse. Du kaufst ein.",
+    setting: "Samstagvormittag, du bist auf dem Wochenmarkt und gehst zu einem Obststand.",
+    steps: [
+      {
+        sofia: "¡Hola! ¿Qué quieres hoy?",
+        de: "Hallo! Was hättest du gerne heute?",
+        options: [
+          { es: "Quiero un kilo de manzanas, por favor.", de: "Ein Kilo Äpfel, bitte.", correct: true },
+          { es: "Quiero una falda azul.", de: "Ich möchte einen blauen Rock.", correct: false, why: "Auf einem Obstmarkt gibt's keine Kleidung!" },
+          { es: "Tengo dos hermanos.", de: "Ich habe zwei Brüder.", correct: false, why: "Sag, was du kaufen willst!" },
+        ],
+      },
+      {
+        sofia: "¡Aquí tienes! ¿Algo más?",
+        de: "Hier bitte! Sonst noch etwas?",
+        options: [
+          { es: "Sí, también medio kilo de tomates.", de: "Ja, auch ein halbes Kilo Tomaten.", correct: true },
+          { es: "Sí, tres plátanos, por favor.", de: "Ja, drei Bananen, bitte.", correct: true, alt: true },
+          { es: "Hace frío hoy.", de: "Heute ist es kalt.", correct: false, why: "Sie fragt nach mehr Einkäufen, nicht nach dem Wetter." },
+        ],
+      },
+      {
+        sofia: "Perfecto. ¿Quieres una bolsa?",
+        de: "Perfekt. Möchtest du eine Tüte?",
+        options: [
+          { es: "Sí, por favor.", de: "Ja, bitte.", correct: true },
+          { es: "No, gracias. Tengo una.", de: "Nein, danke. Ich habe eine.", correct: true, alt: true },
+          { es: "Me llamo Sasha.", de: "Ich heiße Sasha.", correct: false, why: "Antworte mit Ja oder Nein!" },
+        ],
+      },
+      {
+        sofia: "Son tres euros con cincuenta.",
+        de: "Das macht drei Euro fünfzig.",
+        options: [
+          { es: "Aquí tiene.", de: "Hier bitte.", correct: true },
+          { es: "¿Acepta tarjeta?", de: "Akzeptieren Sie Karten?", correct: true, alt: true },
+          { es: "El cielo es azul.", de: "Der Himmel ist blau.", correct: false, why: "Es geht ums Bezahlen!" },
+        ],
+      },
+      {
+        sofia: "¡Muchas gracias! ¡Hasta la próxima!",
+        de: "Vielen Dank! Bis zum nächsten Mal!",
+        options: [
+          { es: "¡Hasta luego!", de: "Bis später!", correct: true },
+          { es: "¡Adiós, gracias!", de: "Tschüss, danke!", correct: true, alt: true },
+          { es: "Tengo sed.", de: "Ich habe Durst.", correct: false, why: "Verabschiede dich freundlich!" },
+        ],
+      },
+    ],
+  },
+  escuela: {
+    title: "Auf dem Schulhof",
+    emoji: "🎒",
+    color: "#E8A838",
+    description: "Sofía ist eine neue Klassenkameradin. Lernt euch kennen.",
+    setting: "Eine neue Schülerin steht in der Pause allein auf dem Schulhof. Du gehst zu ihr.",
+    steps: [
+      {
+        sofia: "¡Hola! Soy nueva aquí. Me llamo Sofía. ¿Y tú?",
+        de: "Hallo! Ich bin neu hier. Ich heiße Sofía. Und du?",
+        options: [
+          { es: "Hola, me llamo Anna. ¡Bienvenida!", de: "Hallo, ich heiße Anna. Willkommen!", correct: true },
+          { es: "Tengo doce años.", de: "Ich bin zwölf.", correct: false, why: "Erst Name, dann andere Sachen!" },
+          { es: "Me gusta el chocolate.", de: "Ich mag Schokolade.", correct: false, why: "Stell dich erst vor!" },
+        ],
+      },
+      {
+        sofia: "Encantada, Anna. ¿De dónde eres?",
+        de: "Freut mich, Anna. Woher kommst du?",
+        options: [
+          { es: "Soy de Alemania.", de: "Ich komme aus Deutschland.", correct: true },
+          { es: "Soy de aquí, de esta escuela.", de: "Ich komme von hier, von dieser Schule.", correct: true, alt: true },
+          { es: "Tengo un gato negro.", de: "Ich habe eine schwarze Katze.", correct: false, why: "Sie fragt, woher du kommst." },
+        ],
+      },
+      {
+        sofia: "¡Qué interesante! ¿Cuál es tu asignatura favorita?",
+        de: "Wie interessant! Was ist dein Lieblingsfach?",
+        options: [
+          { es: "Mi asignatura favorita es el arte.", de: "Mein Lieblingsfach ist Kunst.", correct: true },
+          { es: "Me gustan las matemáticas.", de: "Ich mag Mathe.", correct: true, alt: true },
+          { es: "Vivo en una casa grande.", de: "Ich wohne in einem großen Haus.", correct: false, why: "Das ist nicht die Frage." },
+        ],
+      },
+      {
+        sofia: "¡A mí también! ¿Quieres comer juntas en el recreo?",
+        de: "Ich auch! Wollen wir in der Pause zusammen essen?",
+        options: [
+          { es: "¡Sí, claro! Me encantaría.", de: "Ja, klar! Sehr gerne.", correct: true },
+          { es: "¡Vale! Vamos.", de: "Okay! Lass uns gehen.", correct: true, alt: true },
+          { es: "No tengo bicicleta.", de: "Ich hab kein Fahrrad.", correct: false, why: "Sie lädt dich zum Essen ein!" },
+        ],
+      },
+      {
+        sofia: "¡Genial! ¿Tienes WhatsApp? Podemos intercambiar números.",
+        de: "Super! Hast du WhatsApp? Wir können Nummern austauschen.",
+        options: [
+          { es: "Sí, mi número es siete-cuatro-dos...", de: "Ja, meine Nummer ist 7-4-2...", correct: true },
+          { es: "Claro, dame tu teléfono.", de: "Klar, gib mir dein Handy.", correct: true, alt: true },
+          { es: "Mi madre cocina paella.", de: "Meine Mutter kocht Paella.", correct: false, why: "Antworte auf die WhatsApp-Frage!" },
+        ],
+      },
+    ],
+  },
+};
 
-const SOFIA_ACKS = [
-  "¡Qué bien! 😊", "¡Muy interesante!", "¡Genial!", "¡Qué guay! 🎉", "¡Me encanta!",
-  "¡Ah, qué bonito!", "¡Súper!", "¡Vale, entendido!", "¡Fantástico!", "¡Qué chulo!",
-];
+// --- Roleplay Picker (Auswahl der Szene) ---
+const RoleplayPicker = ({ onPick }) => (
+  <div className="p-5 pb-28">
+    <h2 className="font-display text-2xl font-bold text-[#2B2420] mb-1">Rollenspiele</h2>
+    <p className="text-sm text-[#2B2420]/60 mb-5">In welcher Situation willst du Spanisch üben?</p>
+    <div className="space-y-3">
+      {Object.entries(ROLEPLAYS).map(([key, rp]) => (
+        <button
+          key={key}
+          onClick={() => onPick(key)}
+          style={{ borderColor: `${rp.color}40` }}
+          className="w-full bg-white rounded-2xl p-4 shadow-sm border-2 flex items-center gap-4 active:scale-[0.98] transition text-left"
+        >
+          <div className="text-4xl">{rp.emoji}</div>
+          <div className="flex-1">
+            <div className="font-display font-bold text-[#2B2420] text-lg">{rp.title}</div>
+            <div className="text-xs text-[#2B2420]/60 mt-0.5 leading-snug">{rp.description}</div>
+          </div>
+          <ArrowRight size={20} style={{ color: rp.color }} />
+        </button>
+      ))}
+    </div>
+  </div>
+);
 
-const ChatView = ({ progress, setProgress }) => {
-  const [messages, setMessages] = useState([]);
-  const [queue, setQueue] = useState([]);
-  const [input, setInput] = useState("");
-  const [typing, setTyping] = useState(false);
+// --- Roleplay Scene ---
+const RoleplayScene = ({ scenarioKey, onBack, progress, setProgress }) => {
+  const scenario = ROLEPLAYS[scenarioKey];
+  const [step, setStep] = useState(0);
+  const [history, setHistory] = useState([]); // [{role, content, ...}]
+  const [feedback, setFeedback] = useState(null); // { correct, why? }
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [score, setScore] = useState(0);
+  const [done, setDone] = useState(false);
   const scrollRef = useRef(null);
 
+  // Set initial Sofía message at scene start
   useEffect(() => {
-    const shuffled = shuffle(SOFIA_QUESTIONS);
-    const first = shuffled[0];
-    setQueue(shuffled.slice(1));
-    setMessages([{ role: "assistant", es: first.es, de: first.de, hint: first.hint }]);
-  }, []);
+    const first = scenario.steps[0];
+    setHistory([{ role: "assistant", es: first.sofia, de: first.de }]);
+  }, [scenarioKey]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, typing]);
+  }, [history, feedback]);
 
-  const resetChat = () => {
-    const shuffled = shuffle(SOFIA_QUESTIONS);
-    const first = shuffled[0];
-    setQueue(shuffled.slice(1));
-    setMessages([{ role: "assistant", es: first.es, de: first.de, hint: first.hint }]);
-    setInput("");
-  };
+  const currentStep = scenario.steps[step];
 
-  const sendMessage = () => {
-    if (!input.trim() || typing) return;
-    const userMsg = { role: "user", es: input.trim() };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-    setTyping(true);
-
-    const updated = { ...progress, xp: progress.xp + 3 };
+  const choose = (opt) => {
+    if (feedback) return;
+    setHistory((prev) => [...prev, { role: "user", es: opt.es, de: opt.de, correct: opt.correct }]);
+    setFeedback({ correct: opt.correct, why: opt.why });
+    if (opt.correct) setScore(score + 1);
+    const updated = { ...progress, xp: progress.xp + (opt.correct ? 5 : 1) };
     setProgress(updated);
     saveProgress(updated);
-
-    setTimeout(() => {
-      const ack = SOFIA_ACKS[Math.floor(Math.random() * SOFIA_ACKS.length)];
-      if (queue.length === 0) {
-        setMessages((prev) => [...prev, {
-          role: "assistant",
-          es: `${ack} ¡Has practicado mucho hoy!`,
-          de: "Du hast heute viel geübt!",
-          hint: null,
-        }]);
-      } else {
-        const next = queue[0];
-        setQueue(queue.slice(1));
-        setMessages((prev) => [...prev, {
-          role: "assistant",
-          es: `${ack} ${next.es}`,
-          de: next.de,
-          hint: next.hint,
-        }]);
-      }
-      setTyping(false);
-    }, 900);
   };
+
+  const advance = () => {
+    setFeedback(null);
+    setShowTranslation(false);
+    if (step + 1 >= scenario.steps.length) {
+      setDone(true);
+    } else {
+      const nextIdx = step + 1;
+      const nextStep = scenario.steps[nextIdx];
+      setHistory((prev) => [...prev, { role: "assistant", es: nextStep.sofia, de: nextStep.de }]);
+      setStep(nextIdx);
+    }
+  };
+
+  const restart = () => {
+    setStep(0);
+    setFeedback(null);
+    setShowTranslation(false);
+    setScore(0);
+    setDone(false);
+    const first = scenario.steps[0];
+    setHistory([{ role: "assistant", es: first.sofia, de: first.de }]);
+  };
+
+  if (done) {
+    const pct = Math.round((score / scenario.steps.length) * 100);
+    const emoji = pct === 100 ? "🏆" : pct >= 80 ? "🌟" : pct >= 60 ? "💪" : "📚";
+    const msg = pct === 100 ? "¡Perfecto! Du hast alles richtig gemacht!" : pct >= 80 ? "¡Muy bien! Fast perfekt!" : pct >= 60 ? "¡Bien! Mit etwas Übung wird's noch besser." : "Probier die Szene nochmal – du schaffst das!";
+    return (
+      <div className="p-5 pb-28 flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="text-7xl mb-4">{emoji}</div>
+        <h3 className="font-display text-3xl font-bold text-[#2B2420] mb-2">{score} / {scenario.steps.length}</h3>
+        <p className="text-[#2B2420]/70 mb-2 text-center">{msg}</p>
+        <p className="text-xs text-[#2B2420]/50 mb-8">Szene: {scenario.title}</p>
+        <div className="flex flex-col gap-2 w-full max-w-xs">
+          <button onClick={restart} className="w-full py-3 rounded-2xl bg-white text-[#1F4E5F] font-semibold border border-[#1F4E5F]/20 active:scale-[0.98] transition flex items-center justify-center gap-2">
+            <RefreshCw size={14} /> Szene wiederholen
+          </button>
+          <button onClick={onBack} style={{ background: scenario.color, color: "#FFFFFF" }} className="w-full py-4 rounded-2xl font-semibold active:scale-[0.98] transition">
+            <span style={{ color: "#FFFFFF" }}>Andere Szene</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-160px)]">
-      <div className="px-5 pt-2 pb-1 flex justify-between items-center">
-        <div className="text-[10px] text-[#2B2420]/50 tracking-widest uppercase">
-          {SOFIA_QUESTIONS.length - queue.length} / {SOFIA_QUESTIONS.length} Fragen
-        </div>
-        <button onClick={resetChat} className="text-xs text-[#2B2420]/50 hover:text-[#C85A3E] flex items-center gap-1 py-1 px-2 rounded-full active:bg-white transition">
-          <RefreshCw size={11} /> Neu starten
+      <div className="px-5 pt-2 pb-3 flex justify-between items-center bg-[#FAF3E7] border-b border-[#C85A3E]/10">
+        <button onClick={onBack} className="text-xs text-[#C85A3E] font-semibold flex items-center gap-1">
+          <ChevronLeft size={14} /> Andere Szene
         </button>
+        <div className="text-[10px] text-[#2B2420]/50 tracking-widest uppercase">
+          {scenario.emoji} {scenario.title} · {step + 1}/{scenario.steps.length}
+        </div>
       </div>
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 pb-5 space-y-3">
-        {messages.map((m, i) => (
+
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 pt-4 pb-2 space-y-3">
+        {step === 0 && (
+          <div className="bg-[#FAF3E7] border border-[#C85A3E]/20 rounded-xl p-3 text-xs text-[#2B2420]/80 italic mb-2">
+            {scenario.setting}
+          </div>
+        )}
+        {history.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             {m.role === "assistant" && (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C85A3E] to-[#E8A838] flex items-center justify-center mr-2 shadow-sm flex-shrink-0 mt-1">
-                <span className="text-white font-display font-bold text-xs">S</span>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center mr-2 shadow-sm flex-shrink-0 mt-1" style={{ background: `linear-gradient(135deg, ${scenario.color}, ${scenario.color}cc)` }}>
+                <span className="text-white font-display font-bold text-xs" style={{ color: "#FFFFFF" }}>S</span>
               </div>
             )}
-            <div className={`max-w-[78%] rounded-2xl px-4 py-2.5 ${m.role === "user" ? "bg-[#1F4E5F] text-white rounded-br-sm" : "bg-white text-[#2B2420] rounded-bl-sm shadow-sm"}`}>
-              <div className="text-sm leading-relaxed font-medium">{m.es}</div>
+            <div className={`max-w-[78%] rounded-2xl px-4 py-2.5 ${m.role === "user" ? (m.correct ? "bg-[#6B8F47]" : "bg-[#C85A3E]") + " text-white rounded-br-sm" : "bg-white text-[#2B2420] rounded-bl-sm shadow-sm"}`} style={m.role === "user" ? { color: "#FFFFFF" } : {}}>
+              <div className="text-sm leading-relaxed font-medium" style={m.role === "user" ? { color: "#FFFFFF" } : {}}>{m.es}</div>
               {m.de && (
-                <div className={`text-xs mt-1 italic ${m.role === "user" ? "text-white/60" : "text-[#2B2420]/50"}`}>
+                <div className={`text-xs mt-1 italic ${m.role === "user" ? "" : "text-[#2B2420]/50"}`} style={m.role === "user" ? { color: "rgba(255,255,255,0.75)" } : {}}>
                   {m.de}
-                </div>
-              )}
-              {m.hint && (
-                <div className="mt-2 pt-2 border-t border-[#2B2420]/10 text-xs text-[#C85A3E] font-semibold">
-                  💡 {m.hint}
                 </div>
               )}
               {m.role === "assistant" && (
@@ -396,38 +682,60 @@ const ChatView = ({ progress, setProgress }) => {
             </div>
           </div>
         ))}
-        {typing && (
-          <div className="flex justify-start">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C85A3E] to-[#E8A838] flex items-center justify-center mr-2 shadow-sm">
-              <span className="text-white font-display font-bold text-xs">S</span>
+      </div>
+
+      {/* Antwortbereich */}
+      <div className="bg-[#FAF3E7] border-t border-[#C85A3E]/10 p-4 max-h-[55vh] overflow-y-auto">
+        {!feedback ? (
+          <>
+            <div className="text-[10px] tracking-widest uppercase text-[#2B2420]/50 font-semibold mb-2 text-center">
+              Wie antwortest du?
             </div>
-            <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 rounded-full bg-[#C85A3E]/40 animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 rounded-full bg-[#C85A3E]/40 animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 rounded-full bg-[#C85A3E]/40 animate-bounce" style={{ animationDelay: "300ms" }} />
-              </div>
+            <div className="space-y-2">
+              {currentStep.options.map((opt, i) => (
+                <button
+                  key={i}
+                  onClick={() => choose(opt)}
+                  className="w-full bg-white rounded-2xl px-4 py-3 text-left shadow-sm border border-[#C85A3E]/10 active:scale-[0.98] transition"
+                >
+                  <div className="font-medium text-sm text-[#2B2420] leading-snug">{opt.es}</div>
+                  {showTranslation && (
+                    <div className="text-xs text-[#2B2420]/50 italic mt-1">{opt.de}</div>
+                  )}
+                </button>
+              ))}
             </div>
+            <button onClick={() => setShowTranslation(!showTranslation)} className="w-full mt-3 text-xs text-[#1F4E5F] underline">
+              {showTranslation ? "Übersetzungen ausblenden" : "Was bedeuten die Antworten?"}
+            </button>
+          </>
+        ) : (
+          <div className={`rounded-2xl p-4 ${feedback.correct ? "bg-[#6B8F47]/10 border border-[#6B8F47]/30" : "bg-[#C85A3E]/10 border border-[#C85A3E]/30"}`}>
+            <div className={`flex items-center gap-2 font-display font-bold mb-2 ${feedback.correct ? "text-[#6B8F47]" : "text-[#C85A3E]"}`}>
+              {feedback.correct ? <><Check size={18} /> ¡Muy bien!</> : <><X size={18} /> Hmm...</>}
+            </div>
+            {feedback.why && (
+              <div className="text-sm text-[#2B2420]/80 mb-3">{feedback.why}</div>
+            )}
+            <button
+              onClick={advance}
+              style={{ background: scenario.color, color: "#FFFFFF" }}
+              className="w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition"
+            >
+              <span style={{ color: "#FFFFFF" }}>{step + 1 >= scenario.steps.length ? "Ergebnis" : "Weiter"}</span>
+              <ArrowRight size={16} color="#FFFFFF" />
+            </button>
           </div>
         )}
       </div>
-      <div className="p-4 bg-[#FAF3E7] border-t border-[#C85A3E]/10">
-        <div className="flex gap-2 items-center bg-white rounded-full shadow-sm px-4 py-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Antworte auf Spanisch..."
-            className="flex-1 bg-transparent text-sm focus:outline-none text-[#2B2420] placeholder:text-[#2B2420]/40"
-          />
-          <button onClick={sendMessage} disabled={!input.trim() || typing} className="w-9 h-9 rounded-full bg-[#C85A3E] text-white flex items-center justify-center disabled:opacity-30 active:scale-95 transition">
-            <Send size={16} />
-          </button>
-        </div>
-      </div>
     </div>
   );
+};
+
+const ChatView = ({ progress, setProgress }) => {
+  const [scenarioKey, setScenarioKey] = useState(null);
+  if (!scenarioKey) return <RoleplayPicker onPick={setScenarioKey} />;
+  return <RoleplayScene scenarioKey={scenarioKey} onBack={() => setScenarioKey(null)} progress={progress} setProgress={setProgress} />;
 };
 
 
@@ -457,6 +765,9 @@ const TopicPicker = ({ onPick, title }) => (
 const GamesView = ({ progress, setProgress }) => {
   const [mode, setMode] = useState(null); // matching | flashcards | quiz
   const [topic, setTopic] = useState(null);
+  const [direction, setDirection] = useState(null); // "es-de" | "de-es"
+
+  const reset = () => { setTopic(null); setDirection(null); };
 
   if (!mode) {
     return (
@@ -476,9 +787,44 @@ const GamesView = ({ progress, setProgress }) => {
     return <TopicPicker title={mode === "matching" ? "Paare finden" : mode === "flashcards" ? "Karteikarten" : "Blitzquiz"} onPick={setTopic} />;
   }
 
-  if (mode === "matching") return <MatchingGame topic={topic} onBack={() => setTopic(null)} progress={progress} setProgress={setProgress} />;
-  if (mode === "flashcards") return <FlashcardsGame topic={topic} onBack={() => setTopic(null)} progress={progress} setProgress={setProgress} />;
-  if (mode === "quiz") return <QuizGame topic={topic} onBack={() => setTopic(null)} progress={progress} setProgress={setProgress} />;
+  // Matching braucht keine Richtung – immer beidseitig
+  if (mode === "matching") return <MatchingGame topic={topic} onBack={reset} progress={progress} setProgress={setProgress} />;
+
+  // Bei Karteikarten und Quiz: Richtung wählen
+  if (!direction) {
+    return (
+      <div className="p-5 pb-28">
+        <button onClick={() => setTopic(null)} className="text-sm text-[#C85A3E] font-semibold mb-4 flex items-center gap-1">
+          <ChevronLeft size={16} /> Anderes Thema
+        </button>
+        <h2 className="font-display text-2xl font-bold text-[#2B2420] mb-1">In welche Richtung?</h2>
+        <p className="text-sm text-[#2B2420]/60 mb-5">Was siehst du, was sollst du wissen?</p>
+        <div className="space-y-3">
+          <button onClick={() => setDirection("es-de")} className="w-full bg-white rounded-2xl p-5 shadow-sm border border-[#C85A3E]/10 text-left active:scale-[0.98] transition">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="text-2xl">🇪🇸</div>
+              <ArrowRight size={16} className="text-[#2B2420]/40" />
+              <div className="text-2xl">🇩🇪</div>
+            </div>
+            <div className="font-display font-bold text-[#2B2420]">Spanisch → Deutsch</div>
+            <div className="text-xs text-[#2B2420]/60 mt-0.5">Du siehst „la madre", sagst „die Mutter". <span className="text-[#6B8F47] font-semibold">Einfacher.</span></div>
+          </button>
+          <button onClick={() => setDirection("de-es")} className="w-full bg-white rounded-2xl p-5 shadow-sm border border-[#C85A3E]/10 text-left active:scale-[0.98] transition">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="text-2xl">🇩🇪</div>
+              <ArrowRight size={16} className="text-[#2B2420]/40" />
+              <div className="text-2xl">🇪🇸</div>
+            </div>
+            <div className="font-display font-bold text-[#2B2420]">Deutsch → Spanisch</div>
+            <div className="text-xs text-[#2B2420]/60 mt-0.5">Du siehst „die Mutter", sagst „la madre". <span className="text-[#C85A3E] font-semibold">Schwerer, lerneffektiver.</span></div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === "flashcards") return <FlashcardsGame topic={topic} direction={direction} onBack={reset} progress={progress} setProgress={setProgress} />;
+  if (mode === "quiz") return <QuizGame topic={topic} direction={direction} onBack={reset} progress={progress} setProgress={setProgress} />;
 };
 
 const GameCard = ({ title, desc, color, emoji, onClick }) => (
@@ -595,7 +941,7 @@ const MatchingGame = ({ topic, onBack, progress, setProgress }) => {
 };
 
 // --- Flashcards ---
-const FlashcardsGame = ({ topic, onBack, progress, setProgress }) => {
+const FlashcardsGame = ({ topic, direction, onBack, progress, setProgress }) => {
   const topicData = VOCAB[topic];
   const [deck, setDeck] = useState(shuffle(topicData.words));
   const [idx, setIdx] = useState(0);
@@ -603,6 +949,12 @@ const FlashcardsGame = ({ topic, onBack, progress, setProgress }) => {
   const [done, setDone] = useState(false);
 
   const current = deck[idx];
+  // Was steht vorne, was hinten?
+  const frontIsSpanish = direction === "es-de";
+  const front = frontIsSpanish ? current.es : current.de;
+  const back = frontIsSpanish ? current.de : current.es;
+  const frontLabel = frontIsSpanish ? "Español" : "Deutsch";
+  const backLabel = frontIsSpanish ? "Deutsch" : "Español";
 
   const mark = (known) => {
     const ws = { ...(progress.wordStats || {}) };
@@ -640,14 +992,16 @@ const FlashcardsGame = ({ topic, onBack, progress, setProgress }) => {
       </div>
       <button
         onClick={() => {
-          if (!flipped) speak(current.es);
+          // Beim Aufdecken Spanisch vorlesen, egal wo's grade steht
+          if (!flipped && frontIsSpanish) speak(front);
+          if (!flipped && !frontIsSpanish) speak(back);
           setFlipped(!flipped);
         }}
         className="w-full aspect-[4/3] rounded-3xl shadow-lg flex flex-col items-center justify-center p-6 mb-6 transition-all"
         style={{ backgroundColor: flipped ? "#1F4E5F" : "#FFFFFF", color: flipped ? "#FAF3E7" : "#2B2420" }}
       >
-        <div className="text-xs tracking-widest uppercase opacity-60 mb-2">{flipped ? "Deutsch" : "Español"}</div>
-        <div className="font-display text-3xl font-bold text-center">{flipped ? current.de : current.es}</div>
+        <div className="text-xs tracking-widest uppercase opacity-60 mb-2">{flipped ? backLabel : frontLabel}</div>
+        <div className="font-display text-3xl font-bold text-center">{flipped ? back : front}</div>
         <div className="text-xs mt-4 opacity-60">{flipped ? "Wusstest du es?" : "Tippen zum Umdrehen"}</div>
       </button>
       {flipped && (
@@ -665,13 +1019,19 @@ const FlashcardsGame = ({ topic, onBack, progress, setProgress }) => {
 };
 
 // --- Quiz ---
-const QuizGame = ({ topic, onBack, progress, setProgress }) => {
+const QuizGame = ({ topic, direction, onBack, progress, setProgress }) => {
   const topicData = VOCAB[topic];
   const [questions, setQuestions] = useState([]);
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState(null);
   const [correct, setCorrect] = useState(0);
   const [done, setDone] = useState(false);
+
+  // Was wird gefragt, was wird angeklickt?
+  const promptIsSpanish = direction === "es-de"; // Frage auf Spanisch, Antwort Deutsch
+  const promptKey = promptIsSpanish ? "es" : "de";
+  const answerKey = promptIsSpanish ? "de" : "es";
+  const promptLabel = promptIsSpanish ? "Was heißt auf Deutsch?" : "Was heißt auf Spanisch?";
 
   useEffect(() => {
     const pool = shuffle(topicData.words).slice(0, 8);
@@ -680,7 +1040,7 @@ const QuizGame = ({ topic, onBack, progress, setProgress }) => {
       return { word: w, options: shuffle([w, ...wrongs]) };
     });
     setQuestions(qs);
-  }, [topic]);
+  }, [topic, direction]);
 
   if (questions.length === 0) return null;
   const q = questions[idx];
@@ -727,10 +1087,12 @@ const QuizGame = ({ topic, onBack, progress, setProgress }) => {
         <div className="h-full bg-[#6B8F47] transition-all" style={{ width: `${((idx) / questions.length) * 100}%` }} />
       </div>
       <div className="bg-white rounded-3xl p-6 mb-6 shadow-sm text-center">
-        <div className="text-xs tracking-widest uppercase text-[#2B2420]/50 mb-2">Was heißt auf Deutsch?</div>
+        <div className="text-xs tracking-widest uppercase text-[#2B2420]/50 mb-2">{promptLabel}</div>
         <div className="flex items-center justify-center gap-2">
-          <div className="font-display text-3xl font-bold text-[#2B2420]">{q.word.es}</div>
-          <button onClick={() => speak(q.word.es)} className="text-[#C85A3E]"><Volume2 size={20} /></button>
+          <div className="font-display text-3xl font-bold text-[#2B2420]">{q.word[promptKey]}</div>
+          {promptIsSpanish && (
+            <button onClick={() => speak(q.word.es)} className="text-[#C85A3E]"><Volume2 size={20} /></button>
+          )}
         </div>
       </div>
       <div className="space-y-2.5">
@@ -749,7 +1111,7 @@ const QuizGame = ({ topic, onBack, progress, setProgress }) => {
                 "bg-white text-[#2B2420]/40"
               }`}
             >
-              {opt.de}
+              {opt[answerKey]}
             </button>
           );
         })}
