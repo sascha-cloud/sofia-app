@@ -2227,7 +2227,7 @@ const CONSTRUCTIONS = {
     short: "müssen",
     emoji: "💪",
     color: "#C85A3E",
-    explanation: "„tener que + Verb" heißt „müssen". Du konjugierst „tener" wie immer, dann kommt „que" und das Verb im Infinitiv (also unverändert).",
+    explanation: "'tener que + Verb' heißt 'müssen'. Du konjugierst 'tener' wie immer, dann kommt 'que' und das Verb im Infinitiv (also unverändert).",
     forms: [
       { person: "yo", form: "tengo que", example: "Yo tengo que estudiar.", de: "Ich muss lernen." },
       { person: "tú", form: "tienes que", example: "Tú tienes que comer.", de: "Du musst essen." },
@@ -2244,7 +2244,7 @@ const CONSTRUCTIONS = {
     short: "wollen",
     emoji: "✨",
     color: "#7A4E8B",
-    explanation: "„querer + Verb" heißt „wollen". Achtung: querer ist UNREGELMÄSSIG (e → ie). Danach kommt das Verb direkt im Infinitiv, kein „que"!",
+    explanation: "'querer + Verb' heißt 'wollen'. Achtung: querer ist UNREGELMÄSSIG (e → ie). Danach kommt das Verb direkt im Infinitiv, kein 'que'!",
     forms: [
       { person: "yo", form: "quiero", example: "Yo quiero bailar.", de: "Ich will tanzen." },
       { person: "tú", form: "quieres", example: "Tú quieres comer.", de: "Du willst essen." },
@@ -2261,7 +2261,7 @@ const CONSTRUCTIONS = {
     short: "können",
     emoji: "🦾",
     color: "#1F4E5F",
-    explanation: "„poder + Verb" heißt „können". Auch unregelmäßig (o → ue). Danach kommt das Verb direkt im Infinitiv.",
+    explanation: "'poder + Verb' heißt 'können'. Auch unregelmäßig (o → ue). Danach kommt das Verb direkt im Infinitiv.",
     forms: [
       { person: "yo", form: "puedo", example: "Yo puedo nadar.", de: "Ich kann schwimmen." },
       { person: "tú", form: "puedes", example: "Tú puedes ayudar.", de: "Du kannst helfen." },
@@ -2278,7 +2278,7 @@ const CONSTRUCTIONS = {
     short: "werden / vorhaben",
     emoji: "🚀",
     color: "#6B8F47",
-    explanation: "„ir a + Verb" heißt „werden / vorhaben zu". Drückt die nahe Zukunft aus. „ir" ist unregelmäßig, dann kommt „a" und der Infinitiv.",
+    explanation: "'ir a + Verb' heißt 'werden / vorhaben zu'. Drückt die nahe Zukunft aus. 'ir' ist unregelmäßig, dann kommt 'a' und der Infinitiv.",
     forms: [
       { person: "yo", form: "voy a", example: "Yo voy a estudiar.", de: "Ich werde lernen." },
       { person: "tú", form: "vas a", example: "Tú vas a comer.", de: "Du wirst essen." },
@@ -2295,7 +2295,7 @@ const CONSTRUCTIONS = {
     short: "(mir) gefällt",
     emoji: "❤️",
     color: "#D4572C",
-    explanation: "„gustar" funktioniert ANDERS als im Deutschen! Wörtlich: „mir gefällt etwas". Du brauchst ein Pronomen vorne (me, te, le…). Bei einem Ding: „gusta", bei mehreren Dingen: „gustan".",
+    explanation: "'gustar' funktioniert ANDERS als im Deutschen! Wörtlich: 'mir gefällt etwas'. Du brauchst ein Pronomen vorne (me, te, le…). Bei einem Ding: 'gusta', bei mehreren Dingen: 'gustan'.",
     forms: [
       { person: "yo", form: "me gusta(n)", example: "Me gusta el chocolate.", de: "Mir gefällt Schokolade. (Ich mag Schoko.)" },
       { person: "tú", form: "te gusta(n)", example: "Te gustan los perros.", de: "Dir gefallen Hunde. (Du magst Hunde.)" },
@@ -2312,7 +2312,7 @@ const CONSTRUCTIONS = {
     short: "man muss",
     emoji: "📋",
     color: "#E8A838",
-    explanation: "„hay que + Verb" heißt „man muss" – ganz allgemein, nicht auf eine bestimmte Person bezogen. UNVERÄNDERLICH: immer „hay que", egal wer gemeint ist!",
+    explanation: "'hay que + Verb' heißt 'man muss' – ganz allgemein, nicht auf eine bestimmte Person bezogen. UNVERÄNDERLICH: immer 'hay que', egal wer gemeint ist!",
     forms: [
       { person: "(immer gleich)", form: "hay que", example: "Hay que estudiar mucho.", de: "Man muss viel lernen." },
       { person: "Beispiel 1", form: "hay que", example: "Hay que comer verduras.", de: "Man muss Gemüse essen." },
@@ -2367,10 +2367,10 @@ const GAP_DRILLS = {
     { sentence: "A vosotros os ___ las pizzas italianas.", answer: "gustan", hint: "viele Dinge → gustan" },
   ],
   hay_que: [
-    { sentence: "___ que estudiar para aprobar.", answer: "hay", hint: "Immer „hay" – egal wer!" },
-    { sentence: "En la clase ___ que escuchar.", answer: "hay", hint: "Immer „hay"" },
-    { sentence: "Para estar sano, ___ que comer bien.", answer: "hay", hint: "Immer „hay"" },
-    { sentence: "Antes del examen ___ que repasar.", answer: "hay", hint: "Immer „hay"" },
+    { sentence: "___ que estudiar para aprobar.", answer: "hay", hint: "Immer 'hay' – egal wer!" },
+    { sentence: "En la clase ___ que escuchar.", answer: "hay", hint: "Immer 'hay'" },
+    { sentence: "Para estar sano, ___ que comer bien.", answer: "hay", hint: "Immer 'hay'" },
+    { sentence: "Antes del examen ___ que repasar.", answer: "hay", hint: "Immer 'hay'" },
   ],
 };
 
