@@ -1773,6 +1773,7 @@ const GrammarView = ({ progress, setProgress }) => {
         <div className="space-y-3">
           <GameCard title="Verben im Präsens" desc="Konjugieren lernen & üben" color="#1F4E5F" emoji="⚡" onClick={() => setMode("verbs")} />
           <GameCard title="Possessivbegleiter" desc="mi, tu, nuestro, vuestro…" color="#7A4E8B" emoji="🔑" onClick={() => setMode("possessives")} />
+          <GameCard title="Konstruktionen" desc="tener que, querer, gustar…" color="#C85A3E" emoji="🛠️" onClick={() => setMode("constructions")} />
         </div>
       </div>
     );
@@ -1780,6 +1781,7 @@ const GrammarView = ({ progress, setProgress }) => {
 
   if (mode === "verbs") return <VerbsModule onBack={() => setMode(null)} progress={progress} setProgress={setProgress} />;
   if (mode === "possessives") return <PossessivesModule onBack={() => setMode(null)} progress={progress} setProgress={setProgress} />;
+  if (mode === "constructions") return <ConstructionsModule onBack={() => setMode(null)} progress={progress} setProgress={setProgress} />;
 };
 
 // --- Verbs Module: browse table OR drill ---
@@ -2128,6 +2130,542 @@ const PossessiveDrill = ({ onBack, progress, setProgress }) => {
 const Tag = ({ children }) => (
   <span className="px-2.5 py-1 bg-[#FAF3E7] text-[#2B2420]/70 rounded-full text-xs font-semibold">{children}</span>
 );
+
+// =====================================================================
+// CONSTRUCTIONS MODULE: tener que, querer, poder, ir a, gustar, hay que
+// =====================================================================
+
+const CONSTRUCTIONS = {
+  tener_que: {
+    key: "tener_que",
+    title: "tener que + Infinitiv",
+    short: "müssen",
+    emoji: "💪",
+    color: "#C85A3E",
+    explanation: "„tener que + Verb" heißt „müssen". Du konjugierst „tener" wie immer, dann kommt „que" und das Verb im Infinitiv (also unverändert).",
+    forms: [
+      { person: "yo", form: "tengo que", example: "Yo tengo que estudiar.", de: "Ich muss lernen." },
+      { person: "tú", form: "tienes que", example: "Tú tienes que comer.", de: "Du musst essen." },
+      { person: "él/ella", form: "tiene que", example: "Ella tiene que trabajar.", de: "Sie muss arbeiten." },
+      { person: "nosotros", form: "tenemos que", example: "Nosotros tenemos que ir.", de: "Wir müssen gehen." },
+      { person: "vosotros", form: "tenéis que", example: "Vosotros tenéis que escuchar.", de: "Ihr müsst zuhören." },
+      { person: "ellos/ellas", form: "tienen que", example: "Ellos tienen que ayudar.", de: "Sie müssen helfen." },
+    ],
+    pattern: { type: "conjugated_plus", verb: "tener", connector: "que" },
+  },
+  querer: {
+    key: "querer",
+    title: "querer + Infinitiv",
+    short: "wollen",
+    emoji: "✨",
+    color: "#7A4E8B",
+    explanation: "„querer + Verb" heißt „wollen". Achtung: querer ist UNREGELMÄSSIG (e → ie). Danach kommt das Verb direkt im Infinitiv, kein „que"!",
+    forms: [
+      { person: "yo", form: "quiero", example: "Yo quiero bailar.", de: "Ich will tanzen." },
+      { person: "tú", form: "quieres", example: "Tú quieres comer.", de: "Du willst essen." },
+      { person: "él/ella", form: "quiere", example: "Él quiere jugar.", de: "Er will spielen." },
+      { person: "nosotros", form: "queremos", example: "Nosotros queremos viajar.", de: "Wir wollen reisen." },
+      { person: "vosotros", form: "queréis", example: "Vosotros queréis cantar.", de: "Ihr wollt singen." },
+      { person: "ellos/ellas", form: "quieren", example: "Ellas quieren aprender.", de: "Sie wollen lernen." },
+    ],
+    pattern: { type: "conjugated", verb: "querer" },
+  },
+  poder: {
+    key: "poder",
+    title: "poder + Infinitiv",
+    short: "können",
+    emoji: "🦾",
+    color: "#1F4E5F",
+    explanation: "„poder + Verb" heißt „können". Auch unregelmäßig (o → ue). Danach kommt das Verb direkt im Infinitiv.",
+    forms: [
+      { person: "yo", form: "puedo", example: "Yo puedo nadar.", de: "Ich kann schwimmen." },
+      { person: "tú", form: "puedes", example: "Tú puedes ayudar.", de: "Du kannst helfen." },
+      { person: "él/ella", form: "puede", example: "Ella puede correr.", de: "Sie kann rennen." },
+      { person: "nosotros", form: "podemos", example: "Nosotros podemos ir.", de: "Wir können gehen." },
+      { person: "vosotros", form: "podéis", example: "Vosotros podéis cantar.", de: "Ihr könnt singen." },
+      { person: "ellos/ellas", form: "pueden", example: "Ellos pueden venir.", de: "Sie können kommen." },
+    ],
+    pattern: { type: "conjugated", verb: "poder" },
+  },
+  ir_a: {
+    key: "ir_a",
+    title: "ir a + Infinitiv",
+    short: "werden / vorhaben",
+    emoji: "🚀",
+    color: "#6B8F47",
+    explanation: "„ir a + Verb" heißt „werden / vorhaben zu". Drückt die nahe Zukunft aus. „ir" ist unregelmäßig, dann kommt „a" und der Infinitiv.",
+    forms: [
+      { person: "yo", form: "voy a", example: "Yo voy a estudiar.", de: "Ich werde lernen." },
+      { person: "tú", form: "vas a", example: "Tú vas a comer.", de: "Du wirst essen." },
+      { person: "él/ella", form: "va a", example: "Él va a viajar.", de: "Er wird reisen." },
+      { person: "nosotros", form: "vamos a", example: "Nosotros vamos a bailar.", de: "Wir werden tanzen." },
+      { person: "vosotros", form: "vais a", example: "Vosotros vais a leer.", de: "Ihr werdet lesen." },
+      { person: "ellos/ellas", form: "van a", example: "Ellas van a venir.", de: "Sie werden kommen." },
+    ],
+    pattern: { type: "conjugated_plus", verb: "ir", connector: "a" },
+  },
+  gustar: {
+    key: "gustar",
+    title: "gustar (mögen)",
+    short: "(mir) gefällt",
+    emoji: "❤️",
+    color: "#D4572C",
+    explanation: "„gustar" funktioniert ANDERS als im Deutschen! Wörtlich: „mir gefällt etwas". Du brauchst ein Pronomen vorne (me, te, le…). Bei einem Ding: „gusta", bei mehreren Dingen: „gustan".",
+    forms: [
+      { person: "yo", form: "me gusta(n)", example: "Me gusta el chocolate.", de: "Mir gefällt Schokolade. (Ich mag Schoko.)" },
+      { person: "tú", form: "te gusta(n)", example: "Te gustan los perros.", de: "Dir gefallen Hunde. (Du magst Hunde.)" },
+      { person: "él/ella", form: "le gusta(n)", example: "Le gusta bailar.", de: "Ihm/ihr gefällt es zu tanzen." },
+      { person: "nosotros", form: "nos gusta(n)", example: "Nos gusta la pizza.", de: "Uns gefällt Pizza." },
+      { person: "vosotros", form: "os gusta(n)", example: "Os gustan las películas.", de: "Euch gefallen Filme." },
+      { person: "ellos/ellas", form: "les gusta(n)", example: "Les gusta el fútbol.", de: "Ihnen gefällt Fußball." },
+    ],
+    pattern: { type: "gustar" },
+  },
+  hay_que: {
+    key: "hay_que",
+    title: "hay que + Infinitiv",
+    short: "man muss",
+    emoji: "📋",
+    color: "#E8A838",
+    explanation: "„hay que + Verb" heißt „man muss" – ganz allgemein, nicht auf eine bestimmte Person bezogen. UNVERÄNDERLICH: immer „hay que", egal wer gemeint ist!",
+    forms: [
+      { person: "(immer gleich)", form: "hay que", example: "Hay que estudiar mucho.", de: "Man muss viel lernen." },
+      { person: "Beispiel 1", form: "hay que", example: "Hay que comer verduras.", de: "Man muss Gemüse essen." },
+      { person: "Beispiel 2", form: "hay que", example: "Hay que escuchar al profesor.", de: "Man muss dem Lehrer zuhören." },
+      { person: "Beispiel 3", form: "hay que", example: "Hay que ser puntual.", de: "Man muss pünktlich sein." },
+    ],
+    pattern: { type: "fixed", form: "hay que" },
+  },
+};
+
+// === Drill items: Lückentext (gap fill) ===
+// { construction, sentence (mit ___ und Infinitiv in Klammern), answer, hint }
+const GAP_DRILLS = {
+  tener_que: [
+    { sentence: "Yo ___ que estudiar para el examen.", answer: "tengo", hint: "yo + tener" },
+    { sentence: "Mi hermana ___ que ir al médico.", answer: "tiene", hint: "ella + tener" },
+    { sentence: "Nosotros ___ que comer más fruta.", answer: "tenemos", hint: "nosotros + tener" },
+    { sentence: "¿Tú ___ que trabajar mañana?", answer: "tienes", hint: "tú + tener" },
+    { sentence: "Mis padres ___ que viajar a Madrid.", answer: "tienen", hint: "ellos + tener" },
+    { sentence: "Vosotros ___ que escuchar bien.", answer: "tenéis", alts: ["teneis"], hint: "vosotros + tener" },
+  ],
+  querer: [
+    { sentence: "Yo ___ bailar flamenco.", answer: "quiero", hint: "yo + querer (e→ie)" },
+    { sentence: "¿Tú ___ un helado?", answer: "quieres", hint: "tú + querer" },
+    { sentence: "Mi amiga ___ aprender alemán.", answer: "quiere", hint: "ella + querer" },
+    { sentence: "Nosotros ___ ir al cine.", answer: "queremos", hint: "nosotros + querer (KEIN ie!)" },
+    { sentence: "Los niños ___ jugar fuera.", answer: "quieren", hint: "ellos + querer" },
+    { sentence: "Vosotros ___ comer pizza.", answer: "queréis", alts: ["quereis"], hint: "vosotros + querer" },
+  ],
+  poder: [
+    { sentence: "Yo ___ ayudarte con la tarea.", answer: "puedo", hint: "yo + poder (o→ue)" },
+    { sentence: "¿Tú ___ venir a mi fiesta?", answer: "puedes", hint: "tú + poder" },
+    { sentence: "Mi padre ___ cocinar muy bien.", answer: "puede", hint: "él + poder" },
+    { sentence: "Nosotros ___ jugar al fútbol hoy.", answer: "podemos", hint: "nosotros + poder (KEIN ue!)" },
+    { sentence: "Los gatos ___ dormir todo el día.", answer: "pueden", hint: "ellos + poder" },
+    { sentence: "Vosotros ___ entrar ahora.", answer: "podéis", alts: ["podeis"], hint: "vosotros + poder" },
+  ],
+  ir_a: [
+    { sentence: "Yo ___ a estudiar esta tarde.", answer: "voy", hint: "yo + ir" },
+    { sentence: "Tú ___ a viajar a España.", answer: "vas", hint: "tú + ir" },
+    { sentence: "Mi hermano ___ a comprar pan.", answer: "va", hint: "él + ir" },
+    { sentence: "Nosotros ___ a bailar esta noche.", answer: "vamos", hint: "nosotros + ir" },
+    { sentence: "Mis amigos ___ a venir mañana.", answer: "van", hint: "ellos + ir" },
+    { sentence: "Vosotros ___ a leer un libro.", answer: "vais", hint: "vosotros + ir" },
+  ],
+  gustar: [
+    { sentence: "A mí me ___ el chocolate.", answer: "gusta", hint: "ein Ding (Singular) → gusta" },
+    { sentence: "A ti te ___ los perros.", answer: "gustan", hint: "viele Dinge (Plural) → gustan" },
+    { sentence: "A mi hermana le ___ bailar.", answer: "gusta", hint: "ein Verb → gusta" },
+    { sentence: "A nosotros nos ___ las películas.", answer: "gustan", hint: "viele Dinge → gustan" },
+    { sentence: "A los niños les ___ el fútbol.", answer: "gusta", hint: "ein Ding → gusta" },
+    { sentence: "A vosotros os ___ las pizzas italianas.", answer: "gustan", hint: "viele Dinge → gustan" },
+  ],
+  hay_que: [
+    { sentence: "___ que estudiar para aprobar.", answer: "hay", hint: "Immer „hay" – egal wer!" },
+    { sentence: "En la clase ___ que escuchar.", answer: "hay", hint: "Immer „hay"" },
+    { sentence: "Para estar sano, ___ que comer bien.", answer: "hay", hint: "Immer „hay"" },
+    { sentence: "Antes del examen ___ que repasar.", answer: "hay", hint: "Immer „hay"" },
+  ],
+};
+
+// === Drill items: ganze Sätze übersetzen ===
+const TRANSLATION_DRILLS = {
+  tener_que: [
+    { de: "Ich muss lernen.", accept: ["tengo que estudiar"] },
+    { de: "Du musst essen.", accept: ["tienes que comer"] },
+    { de: "Wir müssen gehen.", accept: ["tenemos que ir"] },
+    { de: "Sie (Einzahl) muss arbeiten.", accept: ["tiene que trabajar", "ella tiene que trabajar"] },
+    { de: "Ihr müsst zuhören.", accept: ["teneis que escuchar", "tenéis que escuchar"] },
+    { de: "Sie (Mehrzahl) müssen helfen.", accept: ["tienen que ayudar", "ellos tienen que ayudar", "ellas tienen que ayudar"] },
+  ],
+  querer: [
+    { de: "Ich will tanzen.", accept: ["quiero bailar"] },
+    { de: "Willst du essen?", accept: ["quieres comer", "quieres comer?", "¿quieres comer?"] },
+    { de: "Wir wollen reisen.", accept: ["queremos viajar"] },
+    { de: "Er will spielen.", accept: ["quiere jugar", "él quiere jugar"] },
+    { de: "Ihr wollt singen.", accept: ["quereis cantar", "queréis cantar"] },
+    { de: "Sie (Mehrzahl) wollen lernen.", accept: ["quieren aprender", "ellos quieren aprender", "ellas quieren aprender"] },
+  ],
+  poder: [
+    { de: "Ich kann schwimmen.", accept: ["puedo nadar"] },
+    { de: "Kannst du helfen?", accept: ["puedes ayudar", "puedes ayudar?", "¿puedes ayudar?"] },
+    { de: "Wir können gehen.", accept: ["podemos ir"] },
+    { de: "Sie (Einzahl) kann rennen.", accept: ["puede correr", "ella puede correr"] },
+    { de: "Ihr könnt singen.", accept: ["podeis cantar", "podéis cantar"] },
+    { de: "Sie (Mehrzahl) können kommen.", accept: ["pueden venir", "ellos pueden venir", "ellas pueden venir"] },
+  ],
+  ir_a: [
+    { de: "Ich werde lernen.", accept: ["voy a estudiar", "voy a aprender"] },
+    { de: "Du wirst essen.", accept: ["vas a comer"] },
+    { de: "Wir werden tanzen.", accept: ["vamos a bailar"] },
+    { de: "Er wird reisen.", accept: ["va a viajar", "él va a viajar"] },
+    { de: "Ihr werdet lesen.", accept: ["vais a leer"] },
+    { de: "Sie (Mehrzahl) werden kommen.", accept: ["van a venir", "ellos van a venir", "ellas van a venir"] },
+  ],
+  gustar: [
+    { de: "Mir gefällt Schokolade.", accept: ["me gusta el chocolate", "me gusta chocolate"] },
+    { de: "Dir gefallen Hunde.", accept: ["te gustan los perros", "te gustan perros"] },
+    { de: "Uns gefällt Pizza.", accept: ["nos gusta la pizza", "nos gusta pizza"] },
+    { de: "Ihm/ihr gefällt es zu tanzen.", accept: ["le gusta bailar"] },
+    { de: "Euch gefallen Filme.", accept: ["os gustan las peliculas", "os gustan las películas", "os gustan peliculas"] },
+    { de: "Ihnen gefällt Fußball.", accept: ["les gusta el futbol", "les gusta el fútbol", "les gusta futbol"] },
+  ],
+  hay_que: [
+    { de: "Man muss lernen.", accept: ["hay que estudiar", "hay que aprender"] },
+    { de: "Man muss Gemüse essen.", accept: ["hay que comer verduras", "hay que comer las verduras"] },
+    { de: "Man muss pünktlich sein.", accept: ["hay que ser puntual"] },
+    { de: "Man muss dem Lehrer zuhören.", accept: ["hay que escuchar al profesor"] },
+    { de: "Man muss viel arbeiten.", accept: ["hay que trabajar mucho"] },
+    { de: "Man muss früh aufstehen.", accept: ["hay que levantarse temprano"] },
+  ],
+};
+
+const ConstructionsModule = ({ onBack, progress, setProgress }) => {
+  const [step, setStep] = useState("topics"); // topics | overview | gaps | translate
+  const [topic, setTopic] = useState(null);
+
+  // 1. Themenwahl
+  if (step === "topics") {
+    return (
+      <div className="p-5 pb-28">
+        <h2 className="font-display text-2xl font-bold text-[#2B2420] mb-1">Konstruktionen</h2>
+        <p className="text-sm text-[#2B2420]/60 mb-5">Welche Konstruktion willst du üben?</p>
+        <div className="space-y-3">
+          {Object.values(CONSTRUCTIONS).map((c) => (
+            <button
+              key={c.key}
+              onClick={() => { setTopic(c.key); setStep("modePick"); }}
+              style={{ borderColor: `${c.color}40` }}
+              className="w-full bg-white rounded-2xl p-4 shadow-sm border-2 flex items-center gap-4 active:scale-[0.98] transition text-left"
+            >
+              <div className="text-3xl">{c.emoji}</div>
+              <div className="flex-1">
+                <div className="font-display font-bold text-[#2B2420]">{c.title}</div>
+                <div className="text-xs text-[#2B2420]/60 mt-0.5">„{c.short}"</div>
+              </div>
+              <ArrowRight size={18} style={{ color: c.color }} />
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const construction = CONSTRUCTIONS[topic];
+
+  // 2. Übungstyp wählen
+  if (step === "modePick") {
+    return (
+      <div className="p-5 pb-28">
+        <button onClick={() => setStep("topics")} className="text-sm text-[#C85A3E] font-semibold mb-4 flex items-center gap-1">
+          <ChevronLeft size={16} /> Andere Konstruktion
+        </button>
+        <h2 className="font-display text-2xl font-bold text-[#2B2420] mb-1">{construction.emoji} {construction.title}</h2>
+        <p className="text-sm text-[#2B2420]/60 mb-5">Was willst du machen?</p>
+        <div className="space-y-3">
+          <GameCard title="📖 Erst erklären lassen" desc="Tabelle und Beispiele anschauen" color={construction.color} emoji="" onClick={() => setStep("overview")} />
+          <GameCard title="✏️ Lückentexte" desc="Yo ___ que estudiar → tippen" color="#1F4E5F" emoji="" onClick={() => setStep("gaps")} />
+          <GameCard title="🇩🇪→🇪🇸 Sätze übersetzen" desc="Ich muss lernen → Tengo que estudiar" color="#C85A3E" emoji="" onClick={() => setStep("translate")} />
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Übersicht
+  if (step === "overview") {
+    return (
+      <div className="p-5 pb-28">
+        <button onClick={() => setStep("modePick")} className="text-sm text-[#C85A3E] font-semibold mb-4 flex items-center gap-1">
+          <ChevronLeft size={16} /> Zurück
+        </button>
+        <div className="bg-white rounded-3xl p-6 shadow-sm mb-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="text-4xl">{construction.emoji}</div>
+            <div>
+              <h3 className="font-display text-2xl font-bold text-[#2B2420]">{construction.title}</h3>
+              <div className="text-sm text-[#2B2420]/60">„{construction.short}"</div>
+            </div>
+          </div>
+          <div className="bg-[#FAF3E7] rounded-xl p-4 text-sm text-[#2B2420]/80 leading-relaxed mt-4">
+            💡 {construction.explanation}
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
+          <div className="text-xs tracking-widest uppercase text-[#2B2420]/50 font-semibold mb-3">Beispiele</div>
+          <div className="space-y-2">
+            {construction.forms.map((f, i) => (
+              <div key={i} className="py-2.5 border-b border-[#2B2420]/5 last:border-0">
+                <div className="flex items-baseline justify-between mb-0.5">
+                  <span className="text-xs text-[#2B2420]/50">{f.person}</span>
+                  <span className="font-display font-bold text-sm" style={{ color: construction.color }}>{f.form}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-display text-[#2B2420] text-sm">{f.example}</div>
+                  <button onClick={() => speak(f.example.replace(/[¡¿?.,]/g, ""))} className="text-[#C85A3E]/70 flex-shrink-0"><Volume2 size={14} /></button>
+                </div>
+                <div className="text-xs text-[#2B2420]/60 italic">{f.de}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={() => setStep("gaps")} className="py-3 rounded-2xl bg-[#1F4E5F] text-white font-semibold text-sm active:scale-95 transition" style={{ color: "#FFFFFF" }}>
+            <span style={{ color: "#FFFFFF" }}>✏️ Lücken üben</span>
+          </button>
+          <button onClick={() => setStep("translate")} style={{ background: construction.color, color: "#FFFFFF" }} className="py-3 rounded-2xl font-semibold text-sm active:scale-95 transition">
+            <span style={{ color: "#FFFFFF" }}>🇩🇪→🇪🇸 Sätze</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "gaps") {
+    return <GapDrill construction={construction} onBack={() => setStep("modePick")} progress={progress} setProgress={setProgress} />;
+  }
+  if (step === "translate") {
+    return <TranslationDrill construction={construction} onBack={() => setStep("modePick")} progress={progress} setProgress={setProgress} />;
+  }
+};
+
+// === Lückentext-Drill ===
+const GapDrill = ({ construction, onBack, progress, setProgress }) => {
+  const [items, setItems] = useState([]);
+  const [idx, setIdx] = useState(0);
+  const [answer, setAnswer] = useState("");
+  const [feedback, setFeedback] = useState(null); // 'correct' | 'wrong'
+  const [score, setScore] = useState(0);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    setItems(shuffle(GAP_DRILLS[construction.key]));
+  }, [construction.key]);
+
+  if (items.length === 0) return null;
+  const q = items[idx];
+
+  const check = () => {
+    if (!answer.trim() || feedback) return;
+    const norm = answer.trim().toLowerCase().replace(/[áéíóú]/g, (c) => ({á:"a",é:"e",í:"i",ó:"o",ú:"u"})[c]);
+    const target = q.answer.toLowerCase().replace(/[áéíóú]/g, (c) => ({á:"a",é:"e",í:"i",ó:"o",ú:"u"})[c]);
+    const altMatches = (q.alts || []).some((a) => a.toLowerCase() === answer.trim().toLowerCase());
+    const correct = norm === target || altMatches;
+    setFeedback(correct ? "correct" : "wrong");
+    if (correct) setScore(score + 1);
+    const updated = { ...progress, xp: progress.xp + (correct ? 4 : 1) };
+    setProgress(updated);
+    saveProgress(updated);
+    setTimeout(() => {
+      setAnswer("");
+      setFeedback(null);
+      if (idx + 1 >= items.length) setDone(true);
+      else setIdx(idx + 1);
+    }, 1500);
+  };
+
+  if (done) {
+    const pct = Math.round((score / items.length) * 100);
+    return (
+      <div className="p-5 pb-28 flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="text-7xl mb-4">{pct >= 80 ? "🏆" : pct >= 50 ? "💪" : "📚"}</div>
+        <h3 className="font-display text-3xl font-bold text-[#2B2420] mb-2">{score} / {items.length}</h3>
+        <p className="text-[#2B2420]/70 mb-6 text-center">{pct >= 80 ? "Großartig!" : pct >= 50 ? "Bald perfekt!" : "Schau dir die Erklärung nochmal an!"}</p>
+        <button onClick={onBack} style={{ background: construction.color, color: "#FFFFFF" }} className="px-6 py-3 rounded-full font-semibold">
+          <span style={{ color: "#FFFFFF" }}>Zurück</span>
+        </button>
+      </div>
+    );
+  }
+
+  // Satz mit visueller Lücke
+  const parts = q.sentence.split("___");
+
+  return (
+    <div className="p-5 pb-28">
+      <div className="flex items-center justify-between mb-5">
+        <button onClick={onBack} className="text-sm text-[#C85A3E] font-semibold flex items-center gap-1">
+          <ChevronLeft size={16} /> Zurück
+        </button>
+        <div className="text-sm text-[#2B2420]/60">{idx + 1} / {items.length}</div>
+      </div>
+      <div className="h-2 bg-white rounded-full overflow-hidden mb-6">
+        <div className="h-full transition-all" style={{ width: `${(idx / items.length) * 100}%`, background: construction.color }} />
+      </div>
+      <div className="bg-white rounded-3xl p-6 mb-4 shadow-sm">
+        <div className="text-xs tracking-widest uppercase text-[#2B2420]/50 mb-3">Setze ein:</div>
+        <div className="font-display text-xl text-[#2B2420] leading-relaxed">
+          {parts[0]}
+          <span className="inline-block px-3 py-1 mx-1 rounded-lg bg-[#FAF3E7] border-2 border-dashed" style={{ borderColor: construction.color, color: construction.color }}>
+            ___
+          </span>
+          {parts[1]}
+        </div>
+        {q.hint && (
+          <div className="mt-3 text-xs italic" style={{ color: construction.color }}>💡 {q.hint}</div>
+        )}
+      </div>
+      <input
+        type="text"
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && check()}
+        disabled={!!feedback}
+        placeholder="Dein Antwort..."
+        autoFocus
+        className={`w-full px-5 py-4 rounded-2xl text-lg font-display font-semibold text-center focus:outline-none transition ${
+          feedback === "correct" ? "bg-[#6B8F47] text-white" :
+          feedback === "wrong" ? "bg-[#C85A3E] text-white" :
+          "bg-white text-[#2B2420] shadow-sm"
+        }`}
+        style={feedback ? { color: "#FFFFFF" } : {}}
+      />
+      {feedback === "wrong" && (
+        <div className="mt-3 text-center text-sm text-[#2B2420]/70">
+          Richtig: <span className="font-bold text-[#2B2420]">{q.answer}</span>
+        </div>
+      )}
+      {!feedback && (
+        <button
+          onClick={check}
+          disabled={!answer.trim()}
+          style={{ background: construction.color, color: "#FFFFFF" }}
+          className="w-full mt-4 py-4 rounded-2xl font-semibold disabled:opacity-30 active:scale-[0.98] transition"
+        >
+          <span style={{ color: "#FFFFFF" }}>Prüfen</span>
+        </button>
+      )}
+    </div>
+  );
+};
+
+// === Übersetzungs-Drill: ganzer Satz DE → ES ===
+const TranslationDrill = ({ construction, onBack, progress, setProgress }) => {
+  const [items, setItems] = useState([]);
+  const [idx, setIdx] = useState(0);
+  const [answer, setAnswer] = useState("");
+  const [feedback, setFeedback] = useState(null);
+  const [score, setScore] = useState(0);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    setItems(shuffle(TRANSLATION_DRILLS[construction.key]));
+  }, [construction.key]);
+
+  if (items.length === 0) return null;
+  const q = items[idx];
+
+  const check = () => {
+    if (!answer.trim() || feedback) return;
+    // Großzügige Normalisierung: kleinschreiben, Akzente weg, mehrfache Spaces zu einem, Satzzeichen weg
+    const norm = (s) => s.toLowerCase().trim()
+      .replace(/[áéíóúñü¿¡?!.,;:]/g, (c) => ({á:"a",é:"e",í:"i",ó:"o",ú:"u",ñ:"n",ü:"u"})[c] || "")
+      .replace(/\s+/g, " ");
+    const userNorm = norm(answer);
+    const correct = q.accept.some((acc) => norm(acc) === userNorm);
+    setFeedback(correct ? "correct" : "wrong");
+    if (correct) setScore(score + 1);
+    const updated = { ...progress, xp: progress.xp + (correct ? 6 : 1) };
+    setProgress(updated);
+    saveProgress(updated);
+    setTimeout(() => {
+      setAnswer("");
+      setFeedback(null);
+      if (idx + 1 >= items.length) setDone(true);
+      else setIdx(idx + 1);
+    }, 2000);
+  };
+
+  if (done) {
+    const pct = Math.round((score / items.length) * 100);
+    return (
+      <div className="p-5 pb-28 flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="text-7xl mb-4">{pct >= 80 ? "🏆" : pct >= 50 ? "💪" : "📚"}</div>
+        <h3 className="font-display text-3xl font-bold text-[#2B2420] mb-2">{score} / {items.length}</h3>
+        <p className="text-[#2B2420]/70 mb-6 text-center">{pct >= 80 ? "Wahnsinn, fast alle richtig!" : pct >= 50 ? "Solide! Übung macht den Meister." : "Schau dir die Beispiele nochmal an, dann probier nochmal!"}</p>
+        <button onClick={onBack} style={{ background: construction.color, color: "#FFFFFF" }} className="px-6 py-3 rounded-full font-semibold">
+          <span style={{ color: "#FFFFFF" }}>Zurück</span>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-5 pb-28">
+      <div className="flex items-center justify-between mb-5">
+        <button onClick={onBack} className="text-sm text-[#C85A3E] font-semibold flex items-center gap-1">
+          <ChevronLeft size={16} /> Zurück
+        </button>
+        <div className="text-sm text-[#2B2420]/60">{idx + 1} / {items.length}</div>
+      </div>
+      <div className="h-2 bg-white rounded-full overflow-hidden mb-6">
+        <div className="h-full transition-all" style={{ width: `${(idx / items.length) * 100}%`, background: construction.color }} />
+      </div>
+      <div className="bg-white rounded-3xl p-6 mb-4 shadow-sm text-center">
+        <div className="text-xs tracking-widest uppercase text-[#2B2420]/50 mb-3">Auf Spanisch:</div>
+        <div className="font-display text-2xl font-bold text-[#2B2420]">{q.de}</div>
+        <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: `${construction.color}15`, color: construction.color }}>
+          {construction.emoji} {construction.title}
+        </div>
+      </div>
+      <textarea
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); check(); } }}
+        disabled={!!feedback}
+        placeholder="Spanischen Satz tippen..."
+        rows={2}
+        autoFocus
+        className={`w-full px-5 py-4 rounded-2xl text-lg font-display font-semibold text-center focus:outline-none transition resize-none ${
+          feedback === "correct" ? "bg-[#6B8F47] text-white" :
+          feedback === "wrong" ? "bg-[#C85A3E] text-white" :
+          "bg-white text-[#2B2420] shadow-sm"
+        }`}
+        style={feedback ? { color: "#FFFFFF" } : {}}
+      />
+      {feedback === "wrong" && (
+        <div className="mt-3 text-center text-sm text-[#2B2420]/70">
+          Mögliche Antwort: <span className="font-bold text-[#2B2420]">{q.accept[0]}</span>
+        </div>
+      )}
+      {feedback === "correct" && (
+        <div className="mt-3 text-center text-sm text-[#6B8F47] font-semibold">
+          ¡Perfecto! 🎉
+        </div>
+      )}
+      {!feedback && (
+        <button
+          onClick={check}
+          disabled={!answer.trim()}
+          style={{ background: construction.color, color: "#FFFFFF" }}
+          className="w-full mt-4 py-4 rounded-2xl font-semibold disabled:opacity-30 active:scale-[0.98] transition"
+        >
+          <span style={{ color: "#FFFFFF" }}>Prüfen</span>
+        </button>
+      )}
+    </div>
+  );
+};
 
 // --- Bottom Nav ---
 const BottomNav = ({ view, onNavigate }) => {
